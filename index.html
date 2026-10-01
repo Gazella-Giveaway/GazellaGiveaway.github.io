@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Gazella Giveaway</title>
+
+<style>
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
+  background:#050507;
+  color:#fff;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ================= BACKGROUND ================= */
+
+body::before{
+  content:"";
+  position:fixed;
+  width:500px;
+  height:500px;
+  left:-220px;
+  top:-180px;
+  background:rgba(112,74,255,.18);
+  filter:blur(100px);
+  border-radius:50%;
+  pointer-events:none;
+}
+
+body::after{
+  content:"";
+  position:fixed;
+  width:450px;
+  height:450px;
+  right:-200px;
+  bottom:-150px;
+  background:rgba(0,210,255,.12);
+  filter:blur(100px);
+  border-radius:50%;
+  pointer-events:none;
+}
+
+/* ================= HEADER ================= */
+
+header{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  z-index:50;
+  padding:18px;
+  display:flex;
+  justify-content:center;
+  pointer-events:none;
+}
+
+.logo{
+  pointer-events:auto;
+  padding:10px 18px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:30px;
+  background:rgba(255,255,255,.055);
+  backdrop-filter:blur(20px);
+  font-size:12px;
+  letter-spacing:3px;
+  font-weight:800;
+}
+
+/* ================= HERO ================= */
+
+.hero{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:100px 20px 60px;
+  position:relative;
+}
+
+.hero-content{
+  width:100%;
+  max-width:600px;
+  animation:heroIn 1s ease;
+}
+
+@keyframes heroIn{
+  from{
+    opacity:0;
+    transform:translateY(35px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+.badge{
+  display:inline-block;
+  padding:8px 15px;
+  border-radius:30px;
+  border:1px solid rgba(255,255,255,.13);
+  background:rgba(255,255,255,.05);
+  color:rgba(255,255,255,.7);
+  font-size:10px;
+  letter-spacing:3px;
+  margin-bottom:22px;
+}
+
+.hero h1{
+  font-size:clamp(48px,15vw,88px);
+  line-height:.92;
+  letter-spacing:-5px;
+  font-weight:950;
+}
+
+.hero h1 span{
+  background:linear-gradient(100deg,#fff,#b9a7ff,#7eeaff,#fff);
+  background-size:250% auto;
+  -webkit-background-clip:text;
+  color:transparent;
+  animation:textShine 4s linear infinite;
+}
+
+@keyframes textShine{
+  to{
+    background-position:250% center;
+  }
+}
+
+.hero p{
+  max-width:430px;
+  margin:25px auto;
+  color:rgba(255,255,255,.55);
+  line-height:1.7;
+  font-size:14px;
+}
+
+.start-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:17px 30px;
+  border-radius:18px;
+  background:#fff;
+  color:#050507;
+  text-decoration:none;
+  font-weight:850;
+  font-size:14px;
+  border:none;
+  cursor:pointer;
+  transition:.3s;
+  box-shadow:0 15px 50px rgba(255,255,255,.1);
+}
+
+.start-btn:hover{
+  transform:translateY(-4px) scale(1.02);
+}
+
+/* ================= QUIZ ================= */
+
+.quiz-section{
+  min-height:100vh;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:90px 18px;
+}
+
+.quiz-box{
+  width:min(600px,100%);
+  padding:28px 20px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.045);
+  border-radius:28px;
+  backdrop-filter:blur(25px);
+  box-shadow:0 30px 100px rgba(0,0,0,.5);
+}
+
+.progress{
+  height:5px;
+  width:100%;
+  background:rgba(255,255,255,.08);
+  border-radius:10px;
+  overflow:hidden;
+  margin-bottom:25px;
+}
+
+.progress-bar{
+  height:100%;
+  width:6.66%;
+  background:linear-gradient(90deg,#8c6cff,#61e9ff);
+  transition:.4s;
+}
+
+.question-number{
+  font-size:10px;
+  letter-spacing:3px;
+  color:rgba(255,255,255,.4);
+  margin-bottom:12px;
+}
+
+.question{
+  font-size:clamp(23px,7vw,34px);
+  line-height:1.15;
+  margin-bottom:25px;
+}
+
+.options{
+  display:grid;
+  gap:11px;
+}
+
+.option{
+  width:100%;
+  padding:16px;
+  text-align:left;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.045);
+  color:#fff;
+  cursor:pointer;
+  font-size:14px;
+  transition:.25s;
+}
+
+.option:hover{
+  background:rgba(255,255,255,.1);
+  transform:translateX(3px);
+}
+
+.option.selected{
+  border-color:rgba(130,110,255,.8);
+  background:rgba(120,90,255,.18);
+}
+
+/* ================= RESULT ================= */
+
+.result-section{
+  min-height:100vh;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:70px 18px;
+}
+
+.result-card{
+  width:min(480px,100%);
+  text-align:center;
+  padding:45px 22px;
+  border-radius:30px;
+  border:1px solid rgba(255,255,255,.13);
+  background:rgba(255,255,255,.05);
+  backdrop-filter:blur(25px);
+  animation:resultIn .8s ease;
+}
+
+@keyframes resultIn{
+  from{
+    opacity:0;
+    transform:scale(.9) translateY(30px);
+  }
+  to{
+    opacity:1;
+    transform:scale(1) translateY(0);
+  }
+}
+
+.result-icon{
+  font-size:55px;
+  margin-bottom:15px;
+}
+
+.result-card h2{
+  font-size:38px;
+  letter-spacing:-2px;
+}
+
+.score{
+  margin:18px 0;
+  font-size:60px;
+  font-weight:950;
+  background:linear-gradient(100deg,#fff,#a995ff,#73eaff);
+  -webkit-background-clip:text;
+  color:transparent;
+}
+
+.result-card p{
+  color:rgba(255,255,255,.55);
+  line-height:1.7;
+  font-size:14px;
+}
+
+/* ================= REDEEM ================= */
+
+.redeem-section{
+  min-height:100vh;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:70px 18px;
+  position:relative;
+  overflow:hidden;
+}
+
+.redeem-card{
+  position:relative;
+  z-index:2;
+  width:min(450px,100%);
+  padding:48px 22px 32px;
+  text-align:center;
+  border-radius:30px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.055);
+  backdrop-filter:blur(28px);
+  box-shadow:0 30px 100px rgba(0,0,0,.55);
+  animation:redeemIn 1s ease;
+}
+
+@keyframes redeemIn{
+  from{
+    opacity:0;
+    transform:translateY(50px) scale(.94);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0) scale(1);
+  }
+}
+
+.redeem-icon{
+  width:65px;
+  height:65px;
+  margin:auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:21px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.14);
+  font-size:30px;
+  animation:float 3s ease-in-out infinite;
+}
+
+@keyframes float{
+  50%{
+    transform:translateY(-9px) rotate(5deg);
+  }
+}
+
+.redeem-label{
+  margin-top:20px;
+  font-size:10px;
+  letter-spacing:4px;
+  opacity:.5;
+}
+
+.redeem-card h2{
+  margin-top:8px;
+  font-size:40px;
+  letter-spacing:-3px;
+}
+
+.prize{
+  margin:15px 0;
+  font-size:65px;
+  font-weight:950;
+  letter-spacing:-4px;
+  background:linear-gradient(100deg,#fff,#b6a4ff,#6eeaff,#fff);
+  background-size:250% auto;
+  -webkit-background-clip:text;
+  color:transparent;
+  animation:textShine 4s linear infinite;
+}
+
+.redeem-card p{
+  color:rgba(255,255,255,.55);
+  font-size:14px;
+  line-height:1.7;
+}
+
+.instagram{
+  display:flex;
+  align-items:center;
+  gap:13px;
+  width:100%;
+  margin-top:27px;
+  padding:16px;
+  border-radius:18px;
+  text-decoration:none;
+  color:white;
+  border:1px solid rgba(255,255,255,.13);
+  background:rgba(255,255,255,.055);
+  transition:.3s;
+}
+
+.instagram:hover{
+  transform:translateY(-4px);
+  box-shadow:0 15px 45px rgba(100,70,255,.25);
+}
+
+.ig-icon{
+  width:45px;
+  height:45px;
+  border-radius:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);
+  font-size:23px;
+}
+
+.instagram-text{
+  text-align:left;
+  flex:1;
+}
+
+.instagram-text small{
+  display:block;
+  font-size:8px;
+  letter-spacing:2px;
+  opacity:.5;
+  margin-bottom:3px;
+}
+
+.instagram-text strong{
+  font-size:15px;
+}
+
+.arrow{
+  font-size:20px;
+  opacity:.6;
+}
+
+.redeem-note{
+  margin-top:17px;
+  font-size:10px!important;
+  color:rgba(255,255,255,.35)!important;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media(max-width:480px){
+
+  .hero h1{
+    letter-spacing:-4px;
+  }
+
+  .quiz-box{
+    padding:24px 17px;
+  }
+
+  .redeem-card{
+    padding:40px 18px 28px;
+  }
+
+  .prize{
+    font-size:52px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">GAZELLA GIVEAWAY</div>
+</header>
+
+<!-- ================= HERO ================= -->
+
+<section class="hero" id="hero">
+
+  <div class="hero-content">
+
+    <div class="badge">
+      15 QUESTIONS • ONE CHANCE
+    </div>
+
+    <h1>
+      THINK.<br>
+      <span>ANSWER.</span><br>
+      WIN.
+    </h1>
+
+    <p>
+      Take the Gazella Giveaway general knowledge challenge.
+      Answer all 15 questions and see if you can reach the final stage.
+    </p>
+
+    <button class="start-btn" onclick="startQuiz()">
+      START CHALLENGE →
+    </button>
+
+  </div>
+
+</section>
+
+<!-- ================= QUIZ ================= -->
+
+<section class="quiz-section" id="quiz">
+
+  <div class="quiz-box">
+
+    <div class="progress">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="question-number" id="questionNumber">
+      QUESTION 01 / 15
+    </div>
+
+    <h2 class="question" id="question"></h2>
+
+    <div class="options" id="options"></div>
+
+  </div>
+
+</section>
+
+<!-- ================= RESULT ================= -->
+
+<section class="result-section" id="result">
+
+  <div class="result-card">
+
+    <div class="result-icon">✦</div>
+
+    <h2>Challenge Complete</h2>
+
+    <div class="score" id="score"></div>
+
+    <p id="resultText"></p>
+
+    <button
+      class="start-btn"
+      style="margin-top:25px"
+      onclick="restartQuiz()"
+    >
+      TRY AGAIN
+    </button>
+
+  </div>
+
+</section>
+
+<!-- ================= REDEEM ================= -->
+
+<section class="redeem-section" id="redeem">
+
+  <div class="redeem-card">
+
+    <div class="redeem-icon">✦</div>
+
+    <div class="redeem-label">
+      GAZELLA GIVEAWAY
+    </div>
+
+    <h2>YOU MADE IT.</h2>
+
+    <div class="prize">
+      ₹25,000
+    </div>
+
+    <p>
+      Congratulations. You achieved a perfect score.
+      Continue your redemption through Instagram.
+    </p>
+
+    <a
+      class="instagram"
+      href="https://www.instagram.com/gazelle.giveaway/"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+
+      <div class="ig-icon">◎</div>
+
+      <div class="instagram-text">
+        <small>REDEEM THROUGH</small>
+        <strong>Instagram DM</strong>
+      </div>
+
+      <div class="arrow">↗</div>
+
+    </a>
+
+    <p class="redeem-note">
+      Send <strong>REDEEM</strong> in your Instagram message.
+    </p>
+
+  </div>
+
+</section>
+
+<script>
+
+/* ================= QUESTIONS ================= */
+
+const questions = [
+
+  {
+    q:"What is the capital of Australia?",
+    options:["Sydney","Melbourne","Canberra","Perth"],
+    answer:2
+  },
+
+  {
+    q:"Which planet is known as the Red Planet?",
+    options:["Venus","Mars","Jupiter","Mercury"],
+    answer:1
+  },
+
+  {
+    q:"How many continents are there?",
+    options:["5","6","7","8"],
+    answer:2
+  },
+
+  {
+    q:"Who wrote Romeo and Juliet?",
+    options:["Charles Dickens","William Shakespeare","Mark Twain","Leo Tolstoy"],
+    answer:1
+  },
+
+  {
+    q:"Which is the largest ocean on Earth?",
+    options:["Atlantic","Indian","Arctic","Pacific"],
+    answer:3
+  },
+
+  {
+    q:"What is the chemical symbol for gold?",
+    options:["Ag","Au","Gd","Go"],
+    answer:1
+  },
+
+  {
+    q:"Which country is famous for the Great Pyramid of Giza?",
+    options:["Greece","Egypt","Mexico","Turkey"],
+    answer:1
+  },
+
+  {
+    q:"How many sides does a hexagon have?",
+    options:["5","6","7","8"],
+    answer:1
+  },
+
+  {
+    q:"Which gas do plants primarily absorb from the atmosphere?",
+    options:["Oxygen","Nitrogen","Carbon dioxide","Hydrogen"],
+    answer:2
+  },
+
+  {
+    q:"What is the fastest land animal?",
+    options:["Lion","Cheetah","Horse","Leopard"],
+    answer:1
+  },
+
+  {
+    q:"Which is the smallest prime number?",
+    options:["0","1","2","3"],
+    answer:2
+  },
+
+  {
+    q:"Which instrument has black and white keys?",
+    options:["Guitar","Piano","Violin","Flute"],
+    answer:1
+  },
+
+  {
+    q:"What is H2O commonly known as?",
+    options:["Salt","Water","Hydrogen","Oxygen"],
+    answer:1
+  },
+
+  {
+    q:"Which country gifted the Statue of Liberty to the United States?",
+    options:["France","Italy","Spain","Canada"],
+    answer:0
+  },
+
+  {
+    q:"Which is the largest planet in our solar system?",
+    options:["Earth","Saturn","Jupiter","Neptune"],
+    answer:2
+  }
+
+];
+
+let currentQuestion = 0;
+let score = 0;
+
+/* ================= START ================= */
+
+function startQuiz(){
+
+  document.getElementById("hero").style.display="none";
+  document.getElementById("quiz").style.display="flex";
+
+  currentQuestion=0;
+  score=0;
+
+  showQuestion();
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+}
+
+/* ================= QUESTION ================= */
+
+function showQuestion(){
+
+  const q = questions[currentQuestion];
+
+  document.getElementById("questionNumber").textContent =
+    `QUESTION ${String(currentQuestion+1).padStart(2,"0")} / 15`;
+
+  document.getElementById("question").textContent = q.q;
+
+  document.getElementById("progressBar").style.width =
+    `${((currentQuestion+1)/15)*100}%`;
+
+  const options = document.getElementById("options");
+
+  options.innerHTML="";
+
+  q.options.forEach((option,index)=>{
+
+    const button=document.createElement("button");
+
+    button.className="option";
+    button.textContent=option;
+
+    button.onclick=()=>selectAnswer(index);
+
+    options.appendChild(button);
+
+  });
+}
+
+/* ================= ANSWER ================= */
+
+function selectAnswer(index){
+
+  if(index === questions[currentQuestion].answer){
+    score++;
+  }
+
+  currentQuestion++;
+
+  if(currentQuestion < questions.length){
+
+    setTimeout(showQuestion,180);
+
+  }else{
+
+    setTimeout(showResult,250);
+
+  }
+}
+
+/* ================= RESULT ================= */
+
+function showResult(){
+
+  document.getElementById("quiz").style.display="none";
+
+  if(score === 15){
+
+    document.getElementById("redeem").style.display="flex";
+
+  }else{
+
+    document.getElementById("result").style.display="flex";
+
+    document.getElementById("score").textContent =
+      `${score} / 15`;
+
+    document.getElementById("resultText").textContent =
+      `You needed a perfect 15/15 score to reach the final stage.`;
+
+  }
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+}
+
+/* ================= RESTART ================= */
+
+function restartQuiz(){
+
+  document.getElementById("result").style.display="none";
+  document.getElementById("hero").style.display="flex";
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+}
+
+</script>
+
+</body>
+</html>
