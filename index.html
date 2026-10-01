@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#050505">
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<title>Gazella Giveaway | The 15 Challenge</title>
+
+<style>
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  background:
+    radial-gradient(circle at top,#242424 0,#0b0b0b 38%,#030303 100%);
+  color:#fff;
+  min-height:100vh;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(
+    120deg,
+    rgba(255,255,255,.03),
+    transparent 35%,
+    rgba(255,255,255,.02)
+  );
+}
+
+.app{
+  width:min(720px,92%);
+  margin:auto;
+  padding:24px 0 50px;
+}
+
+.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:35px;
+}
+
+.brand{
+  font-size:20px;
+  font-weight:900;
+  letter-spacing:3px;
+}
+
+.live{
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:1px;
+  padding:8px 12px;
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:30px;
+  background:rgba(255,255,255,.06);
+}
+
+.hero{
+  text-align:center;
+  margin-bottom:28px;
+}
+
+.hero small{
+  color:#aaa;
+  letter-spacing:3px;
+  font-weight:700;
+  font-size:11px;
+}
+
+.hero h1{
+  font-size:clamp(38px,9vw,68px);
+  line-height:.95;
+  margin:13px 0;
+  letter-spacing:-3px;
+}
+
+.hero p{
+  color:#a7a7a7;
+  font-size:15px;
+  line-height:1.6;
+}
+
+.info-strip{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin:25px 0;
+}
+
+.info{
+  padding:15px 8px;
+  text-align:center;
+  border:1px solid rgba(255,255,255,.09);
+  background:rgba(255,255,255,.045);
+  border-radius:16px;
+}
+
+.info strong{
+  display:block;
+  font-size:18px;
+}
+
+.info span{
+  display:block;
+  margin-top:4px;
+  color:#888;
+  font-size:10px;
+  letter-spacing:1px;
+}
+
+.card{
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.055);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  border-radius:28px;
+  padding:24px;
+  box-shadow:0 20px 60px rgba(0,0,0,.35);
+}
+
+.progress-row{
+  display:flex;
+  justify-content:space-between;
+  color:#999;
+  font-size:12px;
+  margin-bottom:10px;
+}
+
+.progress{
+  height:5px;
+  background:#242424;
+  border-radius:10px;
+  overflow:hidden;
+  margin-bottom:28px;
+}
+
+.progress-bar{
+  height:100%;
+  width:6.66%;
+  background:#fff;
+  border-radius:10px;
+  transition:width .35s ease;
+}
+
+.question{
+  font-size:26px;
+  line-height:1.25;
+  margin-bottom:22px;
+}
+
+.answers{
+  display:grid;
+  gap:10px;
+}
+
+.answer{
+  width:100%;
+  padding:16px;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.035);
+  color:#fff;
+  border-radius:15px;
+  text-align:left;
+  font-size:15px;
+  cursor:pointer;
+  transition:.2s ease;
+}
+
+.answer:hover{
+  background:rgba(255,255,255,.09);
+  transform:translateY(-1px);
+}
+
+.answer.selected{
+  border-color:#fff;
+  background:rgba(255,255,255,.13);
+}
+
+.next{
+  width:100%;
+  border:0;
+  margin-top:18px;
+  padding:16px;
+  border-radius:15px;
+  background:#fff;
+  color:#000;
+  font-size:15px;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.next:disabled{
+  opacity:.35;
+  cursor:not-allowed;
+}
+
+.result{
+  display:none;
+  text-align:center;
+}
+
+.result-icon{
+  font-size:54px;
+  margin-bottom:10px;
+}
+
+.result h2{
+  font-size:38px;
+  margin-bottom:8px;
+}
+
+.score{
+  font-size:18px;
+  color:#aaa;
+  margin-bottom:25px;
+}
+
+.prize{
+  margin:25px 0;
+  padding:25px;
+  border-radius:22px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.055);
+}
+
+.prize-label{
+  color:#888;
+  font-size:11px;
+  letter-spacing:2px;
+}
+
+.prize-amount{
+  font-size:44px;
+  font-weight:950;
+  margin-top:5px;
+}
+
+.note{
+  color:#999;
+  font-size:12px;
+  line-height:1.6;
+  margin:18px 0;
+}
+
+.button{
+  display:block;
+  width:100%;
+  padding:16px;
+  border-radius:15px;
+  text-decoration:none;
+  font-weight:900;
+  margin-top:10px;
+  text-align:center;
+}
+
+.pay{
+  background:#fff;
+  color:#000;
+}
+
+.instagram{
+  background:#151515;
+  color:#fff;
+  border:1px solid rgba(255,255,255,.12);
+}
+
+.security{
+  margin-top:18px;
+  padding:14px;
+  border-radius:14px;
+  background:rgba(255,255,255,.035);
+  color:#777;
+  font-size:11px;
+  line-height:1.6;
+}
+
+.retry{
+  margin-top:15px;
+  background:transparent;
+  border:1px solid rgba(255,255,255,.14);
+  color:#aaa;
+  padding:13px 20px;
+  border-radius:13px;
+  cursor:pointer;
+}
+
+.footer{
+  text-align:center;
+  color:#555;
+  font-size:10px;
+  margin-top:25px;
+}
+
+@media(max-width:500px){
+  .app{
+    padding-top:18px;
+  }
+
+  .hero h1{
+    font-size:45px;
+  }
+
+  .card{
+    padding:18px;
+    border-radius:23px;
+  }
+
+  .question{
+    font-size:23px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <div class="top">
+    <div class="brand">GAZELLA</div>
+    <div class="live">CHALLENGE LIVE</div>
+  </div>
+
+  <section class="hero">
+    <small>THE 15 CHALLENGE</small>
+    <h1>Think fast.<br>Score perfect.</h1>
+    <p>
+      Answer all 15 questions correctly to reach the prize stage.
+    </p>
+  </section>
+
+  <div class="info-strip">
+    <div class="info">
+      <strong>15</strong>
+      <span>QUESTIONS</span>
+    </div>
+
+    <div class="info">
+      <strong>100%</strong>
+      <span>REQUIRED</span>
+    </div>
+
+    <div class="info">
+      <strong>₹25K</strong>
+      <span>PRIZE STAGE</span>
+    </div>
+  </div>
+
+  <div class="card" id="quizCard">
+
+    <div class="progress-row">
+      <span id="questionNumber">Question 1 of 15</span>
+      <span id="percentage">7%</span>
+    </div>
+
+    <div class="progress">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <h2 class="question" id="question"></h2>
+
+    <div class="answers" id="answers"></div>
+
+    <button class="next" id="nextButton" disabled>
+      Next Question →
+    </button>
+
+  </div>
+
+  <div class="card result" id="resultCard">
+
+    <div class="result-icon" id="resultIcon">🏆</div>
+
+    <h2 id="resultTitle">Perfect Score</h2>
+
+    <div class="score" id="resultScore">
+      15 / 15
+    </div>
+
+    <div class="prize">
+      <div class="prize-label">PRIZE STAGE</div>
+      <div class="prize-amount">₹25,000</div>
+    </div>
+
+    <p class="note" id="resultMessage">
+      You achieved the required 15/15 score.
+      Final eligibility and prize conditions are subject to the published
+      contest rules and verification.
+    </p>
+
+    <div id="paymentSection">
+
+      <p class="note">
+        The ₹300 payment is a separate contest step.
+        Payment alone does not guarantee receipt of the prize.
+        Please review the published rules before paying.
+      </p>
+
+      <a
+        class="button pay"
+        href="upi://pay?pa=thanseefabbu@oksbi&pn=Gazella%20Giveaway&am=300&cu=INR"
+      >
+        💳 Pay ₹300 via UPI
+      </a>
+
+      <a
+        class="button instagram"
+        href="https://www.instagram.com/gazelle.giveaway/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        📸 Contact on Instagram
+      </a>
+
+      <div class="security">
+        🔒 Never share your UPI PIN, OTP, card PIN,
+        banking password or login details with anyone.
+      </div>
+
+    </div>
+
+    <button class="retry" onclick="restartQuiz()">
+      Try Again
+    </button>
+
+  </div>
+
+  <div class="footer">
+    © 2026 Gazella Giveaway
+  </div>
+
+</div>
+
+<script>
+const questions = [
+  {
+    q: "What is the capital of India?",
+    a: ["Mumbai", "New Delhi", "Kolkata", "Chennai"],
+    c: 1
+  },
+  {
+    q: "Which planet is known as the Red Planet?",
+    a: ["Venus", "Mars", "Jupiter", "Mercury"],
+    c: 1
+  },
+  {
+    q: "How many continents are there?",
+    a: ["5", "6", "7", "8"],
+    c: 2
+  },
+  {
+    q: "Which is the largest ocean on Earth?",
+    a: ["Atlantic Ocean", "Indian Ocean", "Arctic Ocean", "Pacific Ocean"],
+    c: 3
+  },
+  {
+    q: "Who wrote the Indian national anthem?",
+    a: [
+      "Mahatma Gandhi",
+      "Rabindranath Tagore",
+      "Subhas Chandra Bose",
+      "Jawaharlal Nehru"
+    ],
+    c: 1
+  },
+  {
+    q: "What is the chemical formula for water?",
+    a: ["CO₂", "O₂", "H₂O", "NaCl"],
+    c: 2
+  },
+  {
+    q: "Which is the fastest land animal?",
+    a: ["Lion", "Horse", "Cheetah", "Tiger"],
+    c: 2
+  },
+  {
+    q: "How many days are in a leap year?",
+    a: ["364", "365", "366", "367"],
+    c: 2
+  },
+  {
+    q: "Which is the largest planet in our solar system?",
+    a: ["Earth", "Saturn", "Jupiter", "Neptune"],
+    c: 2
+  },
+  {
+    q: "What is the currency of Japan?",
+    a: ["Won", "Yuan", "Yen", "Ringgit"],
+    c: 2
+  },
+  {
+    q: "Which organ pumps blood around the human body?",
+    a: ["Lungs", "Brain", "Heart", "Kidney"],
+    c: 2
+  },
+  {
+    q: "The chemical symbol Au represents which element?",
+    a: ["Silver", "Gold", "Copper", "Iron"],
+    c: 1
+  },
+  {
+    q: "How many players are on the field for one cricket team?",
+    a: ["9", "10", "11", "12"],
+    c: 2
+  },
+  {
+    q: "Which planet is closest to the Sun?",
+    a: ["Venus", "Earth", "Mercury", "Mars"],
+    c: 2
+  },
+  {
+    q: "Which instrument is used to measure temperature?",
+    a: ["Barometer", "Thermometer", "Hygrometer", "Altimeter"],
+    c: 1
+  }
+];
+
+let currentQuestion = 0;
+let score = 0;
+let selectedAnswer = null;
+
+const questionElement = document.getElementById("question");
+const answersElement = document.getElementById("answers");
+const nextButton = document.getElementById("nextButton");
+const questionNumber = document.getElementById("questionNumber");
+const percentage = document.getElementById("percentage");
+const progressBar = document.getElementById("progressBar");
+
+function loadQuestion(){
+
+  selectedAnswer = null;
+  nextButton.disabled = true;
+
+  const item = questions[currentQuestion];
+
+  questionElement.textContent = item.q;
+
+  questionNumber.textContent =
+    "Question " + (currentQuestion + 1) + " of " + questions.length;
+
+  const percent =
+    Math.round(((currentQuestion + 1) / questions.length) * 100);
+
+  percentage.textContent = percent + "%";
+  progressBar.style.width = percent + "%";
+
+  answersElement.innerHTML = "";
+
+  item.a.forEach((answer, index) => {
+
+    const button = document.createElement("button");
+
+    button.className = "answer";
+    button.textContent = answer;
+
+    button.onclick = function(){
+
+      document.querySelectorAll(".answer").forEach(btn => {
+        btn.classList.remove("selected");
+      });
+
+      button.classList.add("selected");
+
+      selectedAnswer = index;
+      nextButton.disabled = false;
+    };
+
+    answersElement.appendChild(button);
+  });
+}
+
+nextButton.addEventListener("click", function(){
+
+  if(selectedAnswer === null) return;
+
+  if(selectedAnswer === questions[currentQuestion].c){
+    score++;
+  }
+
+  currentQuestion++;
+
+  if(currentQuestion < questions.length){
+    loadQuestion();
+  }else{
+    showResult();
+  }
+
+});
+
+function showResult(){
+
+  document.getElementById("quizCard").style.display = "none";
+
+  const resultCard = document.getElementById("resultCard");
+  resultCard.style.display = "block";
+
+  document.getElementById("resultScore").textContent =
+    score + " / " + questions.length;
+
+  if(score === questions.length){
+
+    document.getElementById("resultIcon").textContent = "🏆";
+    document.getElementById("resultTitle").textContent =
+      "Perfect Score";
+
+    document.getElementById("resultMessage").textContent =
+      "You achieved 15/15. Final eligibility and prize conditions are subject to the published contest rules and verification.";
+
+    document.getElementById("paymentSection").style.display =
+      "block";
+
+  }else{
+
+    document.getElementById("resultIcon").textContent = "🎯";
+    document.getElementById("resultTitle").textContent =
+      "Challenge Complete";
+
+    document.getElementById("resultMessage").textContent =
+      "A perfect 15/15 score is required to reach the prize stage.";
+
+    document.getElementById("paymentSection").style.display =
+      "none";
+  }
+}
+
+function restartQuiz(){
+
+  currentQuestion = 0;
+  score = 0;
+  selectedAnswer = null;
+
+  document.getElementById("resultCard").style.display =
+    "none";
+
+  document.getElementById("quizCard").style.display =
+    "block";
+
+  loadQuestion();
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+}
+
+loadQuestion();
+</script>
+
+</body>
+</html>
