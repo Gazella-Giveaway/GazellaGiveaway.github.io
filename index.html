@@ -6,137 +6,363 @@
 
 <title>Gazella Giveaway</title>
 
+<meta name="theme-color" content="#070707">
+
 <style>
 * {
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: #080808;
-  color: white;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+               "Segoe UI", Arial, sans-serif;
+  color: #fff;
+  background:
+    radial-gradient(circle at 50% -10%, #303030 0%, #111 35%, #050505 70%);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255,255,255,.035), transparent 25%),
+    radial-gradient(circle at 85% 70%, rgba(255,255,255,.025), transparent 30%);
 }
 
 .container {
-  max-width: 700px;
+  width: min(100%, 720px);
   margin: auto;
-  padding: 25px 16px 50px;
+  padding: 20px 16px 60px;
+  position: relative;
+  z-index: 1;
 }
+
+/* HEADER */
 
 .header {
   text-align: center;
-  padding: 25px 10px;
+  padding: 28px 10px 22px;
 }
 
 .logo {
-  font-size: 34px;
-  font-weight: bold;
-  letter-spacing: 2px;
+  display: inline-block;
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: 5px;
+  background: linear-gradient(135deg, #fff, #888);
+  -webkit-background-clip: text;
+  color: transparent;
 }
 
-.subtitle {
+.badge {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 7px 13px;
+  border: 1px solid #333;
+  border-radius: 999px;
+  background: rgba(255,255,255,.04);
   color: #aaa;
-  margin-top: 8px;
+  font-size: 12px;
+  letter-spacing: 1px;
 }
 
-.card {
-  background: #121212;
-  border: 1px solid #292929;
-  border-radius: 16px;
-  padding: 20px;
+/* HERO */
+
+.hero {
+  padding: 26px 22px;
   margin-bottom: 18px;
+  border: 1px solid #292929;
+  border-radius: 24px;
+  background: linear-gradient(
+    145deg,
+    rgba(255,255,255,.075),
+    rgba(255,255,255,.025)
+  );
+  box-shadow:
+    0 20px 60px rgba(0,0,0,.35),
+    inset 0 1px rgba(255,255,255,.05);
+  backdrop-filter: blur(15px);
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: clamp(28px, 8vw, 44px);
+  line-height: 1.05;
+  letter-spacing: -1.5px;
+}
+
+.hero h1 span {
+  color: #aaa;
+}
+
+.hero p {
+  color: #999;
+  line-height: 1.6;
+  margin: 14px 0 0;
+}
+
+/* QUIZ */
+
+.quiz-card {
+  padding: 22px;
+  border: 1px solid #292929;
+  border-radius: 24px;
+  background: rgba(15,15,15,.9);
+  box-shadow: 0 20px 60px rgba(0,0,0,.3);
+}
+
+.progress-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #999;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.progress-number {
+  color: #fff;
+  font-weight: 700;
+}
+
+.progress-bar {
+  height: 6px;
+  width: 100%;
+  background: #222;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 6.66%;
+  background: #fff;
+  border-radius: 999px;
+  transition: width .35s ease;
+}
+
+.question-number {
+  color: #777;
+  font-size: 13px;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
 }
 
 .question {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 15px;
+  font-size: 23px;
+  line-height: 1.3;
+  font-weight: 750;
+  margin-bottom: 22px;
 }
 
 .option {
-  display: block;
   width: 100%;
+  padding: 16px;
+  margin: 9px 0;
+  border: 1px solid #303030;
+  border-radius: 15px;
+  background: #181818;
+  color: #eee;
   text-align: left;
-  background: #1d1d1d;
-  color: white;
-  border: 1px solid #333;
-  padding: 13px;
-  margin: 8px 0;
-  border-radius: 10px;
+  font-size: 16px;
   cursor: pointer;
-  font-size: 15px;
+  transition: .2s ease;
 }
 
-.option:hover {
-  background: #292929;
+.option:active {
+  transform: scale(.985);
 }
 
 .option.selected {
-  border-color: white;
-  background: #303030;
+  background: #fff;
+  color: #080808;
+  border-color: #fff;
+  font-weight: 700;
 }
 
-#submitBtn {
+.next-btn {
   width: 100%;
-  padding: 16px;
-  border: none;
-  border-radius: 12px;
-  background: white;
-  color: black;
-  font-size: 17px;
-  font-weight: bold;
+  margin-top: 18px;
+  padding: 17px;
+  border: 0;
+  border-radius: 15px;
+  background: #fff;
+  color: #050505;
+  font-size: 16px;
+  font-weight: 800;
   cursor: pointer;
+  transition: .2s ease;
 }
 
-#submitBtn:disabled {
-  opacity: 0.5;
+.next-btn:disabled {
+  opacity: .35;
   cursor: not-allowed;
 }
 
-.hidden {
-  display: none;
+.next-btn:not(:disabled):active {
+  transform: scale(.985);
 }
+
+.hidden {
+  display: none !important;
+}
+
+/* RESULT */
 
 .result {
   text-align: center;
-  padding: 30px 15px;
+  padding: 30px 22px;
+  border-radius: 24px;
+  border: 1px solid #303030;
+  background:
+    radial-gradient(circle at 50% 0%, #252525, #101010 55%);
+  box-shadow: 0 25px 80px rgba(0,0,0,.45);
 }
 
-.success {
-  border: 1px solid #555;
-  background: #111;
+.result-icon {
+  font-size: 52px;
+  margin-bottom: 12px;
 }
 
-.warning {
-  border: 1px solid #555;
-  background: #111;
+.result-score {
+  font-size: 42px;
+  font-weight: 900;
+  letter-spacing: -1px;
 }
 
-.big {
-  font-size: 32px;
-  font-weight: bold;
+.result h2 {
+  margin: 8px 0;
+  font-size: 25px;
+}
+
+.prize-label {
+  color: #999;
+  font-size: 13px;
+  letter-spacing: 1px;
+  margin-top: 25px;
 }
 
 .prize {
-  font-size: 38px;
-  font-weight: bold;
-  margin: 15px 0;
+  font-size: clamp(42px, 12vw, 62px);
+  font-weight: 900;
+  margin: 4px 0 15px;
+  background: linear-gradient(135deg, #fff, #888);
+  -webkit-background-clip: text;
+  color: transparent;
 }
 
 .info {
-  color: #bbb;
-  line-height: 1.6;
+  color: #aaa;
+  line-height: 1.65;
+  font-size: 14px;
+}
+
+.divider {
+  height: 1px;
+  background: #292929;
+  margin: 25px 0;
+}
+
+.unlock-title {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.upi-button,
+.instagram-button {
+  display: block;
+  width: 100%;
+  padding: 17px;
+  border-radius: 15px;
+  text-decoration: none;
+  font-weight: 800;
+  margin-top: 12px;
+  transition: .2s ease;
+}
+
+.upi-button {
+  background: #fff;
+  color: #050505;
+}
+
+.instagram-button {
+  background: #1b1b1b;
+  color: #fff;
+  border: 1px solid #333;
+}
+
+.upi-button:active,
+.instagram-button:active {
+  transform: scale(.98);
 }
 
 .small {
-  color: #888;
-  font-size: 13px;
-  line-height: 1.5;
+  color: #707070;
+  font-size: 12px;
+  line-height: 1.6;
+  margin-top: 18px;
 }
 
-button {
-  font-family: inherit;
+/* FAIL */
+
+.fail {
+  text-align: center;
+}
+
+.fail-score {
+  font-size: 44px;
+  font-weight: 900;
+}
+
+.retry-button {
+  display: block;
+  width: 100%;
+  margin-top: 20px;
+  padding: 16px;
+  border-radius: 15px;
+  background: #fff;
+  color: #000;
+  border: 0;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* FOOTER */
+
+.footer {
+  text-align: center;
+  color: #555;
+  font-size: 11px;
+  line-height: 1.6;
+  padding: 25px 10px;
+}
+
+/* ANIMATION */
+
+.fade-in {
+  animation: fadeIn .35s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>
 </head>
@@ -145,400 +371,163 @@ button {
 
 <div class="container">
 
-  <div class="header">
+  <header class="header">
     <div class="logo">GAZELLA</div>
-    <div class="subtitle">Giveaway • General Knowledge Quiz</div>
-  </div>
+    <div class="badge">GENERAL KNOWLEDGE CHALLENGE</div>
+  </header>
 
-  <div class="card">
-    <h2>🏆 25 Question Challenge</h2>
-    <p class="info">
-      Answer all 25 questions. Your score will be calculated automatically.
-      You must answer all questions before submitting.
+  <section class="hero">
+    <h1>Can you score<br><span>15 out of 15?</span></h1>
+
+    <p>
+      Complete the challenge and reach the qualification stage.
+      Answer every question carefully.
     </p>
-  </div>
+  </section>
 
-  <form id="quizForm">
+  <!-- QUIZ -->
 
-    <!-- Question 1 -->
-    <div class="card">
-      <div class="question">1. What is the capital of India?</div>
-      <button type="button" class="option" data-q="1" data-answer="Delhi">Delhi</button>
-      <button type="button" class="option" data-q="1" data-answer="Mumbai">Mumbai</button>
-      <button type="button" class="option" data-q="1" data-answer="Chennai">Chennai</button>
-      <button type="button" class="option" data-q="1" data-answer="Kolkata">Kolkata</button>
+  <section id="quizCard" class="quiz-card">
+
+    <div class="progress-top">
+      <span>QUIZ PROGRESS</span>
+      <span class="progress-number">
+        <span id="currentNumber">1</span>/15
+      </span>
     </div>
 
-    <!-- Question 2 -->
-    <div class="card">
-      <div class="question">2. Which planet is known as the Red Planet?</div>
-      <button type="button" class="option" data-q="2" data-answer="Mars">Mars</button>
-      <button type="button" class="option" data-q="2" data-answer="Venus">Venus</button>
-      <button type="button" class="option" data-q="2" data-answer="Jupiter">Jupiter</button>
-      <button type="button" class="option" data-q="2" data-answer="Mercury">Mercury</button>
+    <div class="progress-bar">
+      <div id="progressFill" class="progress-fill"></div>
     </div>
 
-    <!-- Question 3 -->
-    <div class="card">
-      <div class="question">3. How many continents are there?</div>
-      <button type="button" class="option" data-q="3" data-answer="5">5</button>
-      <button type="button" class="option" data-q="3" data-answer="6">6</button>
-      <button type="button" class="option" data-q="3" data-answer="7">7</button>
-      <button type="button" class="option" data-q="3" data-answer="8">8</button>
+    <div id="questionNumber" class="question-number">
+      QUESTION 01
     </div>
 
-    <!-- Question 4 -->
-    <div class="card">
-      <div class="question">4. Which is the largest ocean on Earth?</div>
-      <button type="button" class="option" data-q="4" data-answer="Atlantic">Atlantic Ocean</button>
-      <button type="button" class="option" data-q="4" data-answer="Pacific">Pacific Ocean</button>
-      <button type="button" class="option" data-q="4" data-answer="Indian">Indian Ocean</button>
-      <button type="button" class="option" data-q="4" data-answer="Arctic">Arctic Ocean</button>
+    <div id="questionText" class="question">
+      What is the capital of India?
     </div>
 
-    <!-- Question 5 -->
-    <div class="card">
-      <div class="question">5. Who wrote the Indian national anthem?</div>
-      <button type="button" class="option" data-q="5" data-answer="Tagore">Rabindranath Tagore</button>
-      <button type="button" class="option" data-q="5" data-answer="Gandhi">Mahatma Gandhi</button>
-      <button type="button" class="option" data-q="5" data-answer="Nehru">Jawaharlal Nehru</button>
-      <button type="button" class="option" data-q="5" data-answer="Bose">Subhas Chandra Bose</button>
-    </div>
+    <div id="options"></div>
 
-    <!-- Question 6 -->
-    <div class="card">
-      <div class="question">6. What is H2O commonly called?</div>
-      <button type="button" class="option" data-q="6" data-answer="Water">Water</button>
-      <button type="button" class="option" data-q="6" data-answer="Oxygen">Oxygen</button>
-      <button type="button" class="option" data-q="6" data-answer="Hydrogen">Hydrogen</button>
-      <button type="button" class="option" data-q="6" data-answer="Salt">Salt</button>
-    </div>
-
-    <!-- Question 7 -->
-    <div class="card">
-      <div class="question">7. Which is the fastest land animal?</div>
-      <button type="button" class="option" data-q="7" data-answer="Lion">Lion</button>
-      <button type="button" class="option" data-q="7" data-answer="Cheetah">Cheetah</button>
-      <button type="button" class="option" data-q="7" data-answer="Tiger">Tiger</button>
-      <button type="button" class="option" data-q="7" data-answer="Horse">Horse</button>
-    </div>
-
-    <!-- Question 8 -->
-    <div class="card">
-      <div class="question">8. Which gas do humans need for respiration?</div>
-      <button type="button" class="option" data-q="8" data-answer="Oxygen">Oxygen</button>
-      <button type="button" class="option" data-q="8" data-answer="Nitrogen">Nitrogen</button>
-      <button type="button" class="option" data-q="8" data-answer="Carbon">Carbon dioxide</button>
-      <button type="button" class="option" data-q="8" data-answer="Helium">Helium</button>
-    </div>
-
-    <!-- Question 9 -->
-    <div class="card">
-      <div class="question">9. How many days are there in a leap year?</div>
-      <button type="button" class="option" data-q="9" data-answer="364">364</button>
-      <button type="button" class="option" data-q="9" data-answer="365">365</button>
-      <button type="button" class="option" data-q="9" data-answer="366">366</button>
-      <button type="button" class="option" data-q="9" data-answer="367">367</button>
-    </div>
-
-    <!-- Question 10 -->
-    <div class="card">
-      <div class="question">10. Which is the largest planet in our Solar System?</div>
-      <button type="button" class="option" data-q="10" data-answer="Earth">Earth</button>
-      <button type="button" class="option" data-q="10" data-answer="Saturn">Saturn</button>
-      <button type="button" class="option" data-q="10" data-answer="Jupiter">Jupiter</button>
-      <button type="button" class="option" data-q="10" data-answer="Neptune">Neptune</button>
-    </div>
-
-    <!-- Question 11 -->
-    <div class="card">
-      <div class="question">11. Which country is famous for the Eiffel Tower?</div>
-      <button type="button" class="option" data-q="11" data-answer="Italy">Italy</button>
-      <button type="button" class="option" data-q="11" data-answer="France">France</button>
-      <button type="button" class="option" data-q="11" data-answer="Spain">Spain</button>
-      <button type="button" class="option" data-q="11" data-answer="Germany">Germany</button>
-    </div>
-
-    <!-- Question 12 -->
-    <div class="card">
-      <div class="question">12. What is the currency of Japan?</div>
-      <button type="button" class="option" data-q="12" data-answer="Yuan">Yuan</button>
-      <button type="button" class="option" data-q="12" data-answer="Won">Won</button>
-      <button type="button" class="option" data-q="12" data-answer="Yen">Yen</button>
-      <button type="button" class="option" data-q="12" data-answer="Dollar">Dollar</button>
-    </div>
-
-    <!-- Question 13 -->
-    <div class="card">
-      <div class="question">13. Which organ pumps blood around the human body?</div>
-      <button type="button" class="option" data-q="13" data-answer="Lungs">Lungs</button>
-      <button type="button" class="option" data-q="13" data-answer="Brain">Brain</button>
-      <button type="button" class="option" data-q="13" data-answer="Heart">Heart</button>
-      <button type="button" class="option" data-q="13" data-answer="Kidney">Kidney</button>
-    </div>
-
-    <!-- Question 14 -->
-    <div class="card">
-      <div class="question">14. Which metal has the chemical symbol Au?</div>
-      <button type="button" class="option" data-q="14" data-answer="Silver">Silver</button>
-      <button type="button" class="option" data-q="14" data-answer="Gold">Gold</button>
-      <button type="button" class="option" data-q="14" data-answer="Iron">Iron</button>
-      <button type="button" class="option" data-q="14" data-answer="Copper">Copper</button>
-    </div>
-
-    <!-- Question 15 -->
-    <div class="card">
-      <div class="question">15. How many players are on a cricket team?</div>
-      <button type="button" class="option" data-q="15" data-answer="9">9</button>
-      <button type="button" class="option" data-q="15" data-answer="10">10</button>
-      <button type="button" class="option" data-q="15" data-answer="11">11</button>
-      <button type="button" class="option" data-q="15" data-answer="12">12</button>
-    </div>
-
-    <!-- Question 16 -->
-    <div class="card">
-      <div class="question">16. Which is the smallest prime number?</div>
-      <button type="button" class="option" data-q="16" data-answer="1">1</button>
-      <button type="button" class="option" data-q="16" data-answer="2">2</button>
-      <button type="button" class="option" data-q="16" data-answer="3">3</button>
-      <button type="button" class="option" data-q="16" data-answer="5">5</button>
-    </div>
-
-    <!-- Question 17 -->
-    <div class="card">
-      <div class="question">17. Which planet is closest to the Sun?</div>
-      <button type="button" class="option" data-q="17" data-answer="Mercury">Mercury</button>
-      <button type="button" class="option" data-q="17" data-answer="Venus">Venus</button>
-      <button type="button" class="option" data-q="17" data-answer="Earth">Earth</button>
-      <button type="button" class="option" data-q="17" data-answer="Mars">Mars</button>
-    </div>
-
-    <!-- Question 18 -->
-    <div class="card">
-      <div class="question">18. Which is the longest river in India?</div>
-      <button type="button" class="option" data-q="18" data-answer="Ganga">Ganga</button>
-      <button type="button" class="option" data-q="18" data-answer="Yamuna">Yamuna</button>
-      <button type="button" class="option" data-q="18" data-answer="Godavari">Godavari</button>
-      <button type="button" class="option" data-q="18" data-answer="Narmada">Narmada</button>
-    </div>
-
-    <!-- Question 19 -->
-    <div class="card">
-      <div class="question">19. What is the boiling point of water at sea level?</div>
-      <button type="button" class="option" data-q="19" data-answer="50">50°C</button>
-      <button type="button" class="option" data-q="19" data-answer="75">75°C</button>
-      <button type="button" class="option" data-q="19" data-answer="100">100°C</button>
-      <button type="button" class="option" data-q="19" data-answer="120">120°C</button>
-    </div>
-
-    <!-- Question 20 -->
-    <div class="card">
-      <div class="question">20. Who is known as the Father of the Indian Constitution?</div>
-      <button type="button" class="option" data-q="20" data-answer="Ambedkar">Dr. B. R. Ambedkar</button>
-      <button type="button" class="option" data-q="20" data-answer="Gandhi">Mahatma Gandhi</button>
-      <button type="button" class="option" data-q="20" data-answer="Nehru">Jawaharlal Nehru</button>
-      <button type="button" class="option" data-q="20" data-answer="Patel">Sardar Patel</button>
-    </div>
-
-    <!-- Question 21 -->
-    <div class="card">
-      <div class="question">21. Which instrument is used to measure temperature?</div>
-      <button type="button" class="option" data-q="21" data-answer="Barometer">Barometer</button>
-      <button type="button" class="option" data-q="21" data-answer="Thermometer">Thermometer</button>
-      <button type="button" class="option" data-q="21" data-answer="Hygrometer">Hygrometer</button>
-      <button type="button" class="option" data-q="21" data-answer="Compass">Compass</button>
-    </div>
-
-    <!-- Question 22 -->
-    <div class="card">
-      <div class="question">22. Which is the largest mammal?</div>
-      <button type="button" class="option" data-q="22" data-answer="Elephant">Elephant</button>
-      <button type="button" class="option" data-q="22" data-answer="BlueWhale">Blue Whale</button>
-      <button type="button" class="option" data-q="22" data-answer="Giraffe">Giraffe</button>
-      <button type="button" class="option" data-q="22" data-answer="Hippo">Hippopotamus</button>
-    </div>
-
-    <!-- Question 23 -->
-    <div class="card">
-      <div class="question">23. Which language is primarily used to structure web pages?</div>
-      <button type="button" class="option" data-q="23" data-answer="HTML">HTML</button>
-      <button type="button" class="option" data-q="23" data-answer="Python">Python</button>
-      <button type="button" class="option" data-q="23" data-answer="C">C</button>
-      <button type="button" class="option" data-q="23" data-answer="SQL">SQL</button>
-    </div>
-
-    <!-- Question 24 -->
-    <div class="card">
-      <div class="question">24. Which is the largest desert in the world?</div>
-      <button type="button" class="option" data-q="24" data-answer="Sahara">Sahara</button>
-      <button type="button" class="option" data-q="24" data-answer="Gobi">Gobi</button>
-      <button type="button" class="option" data-q="24" data-answer="Antarctic">Antarctic Desert</button>
-      <button type="button" class="option" data-q="24" data-answer="Arabian">Arabian Desert</button>
-    </div>
-
-    <!-- Question 25 -->
-    <div class="card">
-      <div class="question">25. How many colors are traditionally listed in a rainbow?</div>
-      <button type="button" class="option" data-q="25" data-answer="5">5</button>
-      <button type="button" class="option" data-q="25" data-answer="6">6</button>
-      <button type="button" class="option" data-q="25" data-answer="7">7</button>
-      <button type="button" class="option" data-q="25" data-answer="8">8</button>
-    </div>
-
-    <button id="submitBtn" type="button" disabled>
-      Submit Quiz
+    <button id="nextBtn" class="next-btn" disabled>
+      Select an answer
     </button>
 
-  </form>
+  </section>
 
-  <!-- Result -->
-  <div id="resultBox" class="card result hidden"></div>
+  <!-- RESULT -->
+
+  <section id="resultBox" class="result hidden"></section>
+
+  <footer class="footer">
+    © 2026 Gazella Giveaway<br>
+    Please read the published contest rules and eligibility conditions
+    before making any payment.
+  </footer>
 
 </div>
 
 <script>
 
-const answers = {
-  1: "Delhi",
-  2: "Mars",
-  3: "7",
-  4: "Pacific",
-  5: "Tagore",
-  6: "Water",
-  7: "Cheetah",
-  8: "Oxygen",
-  9: "366",
-  10: "Jupiter",
-  11: "France",
-  12: "Yen",
-  13: "Heart",
-  14: "Gold",
-  15: "11",
-  16: "2",
-  17: "Mercury",
-  18: "Ganga",
-  19: "100",
-  20: "Ambedkar",
-  21: "Thermometer",
-  22: "BlueWhale",
-  23: "HTML",
-  24: "Antarctic",
-  25: "7"
-};
+const questions = [
 
-let selected = {};
+  {
+    question: "What is the capital of India?",
+    options: ["Delhi", "Mumbai", "Chennai", "Kolkata"],
+    answer: "Delhi"
+  },
 
-const options = document.querySelectorAll(".option");
-const submitBtn = document.getElementById("submitBtn");
-const resultBox = document.getElementById("resultBox");
+  {
+    question: "Which planet is known as the Red Planet?",
+    options: ["Mars", "Venus", "Jupiter", "Mercury"],
+    answer: "Mars"
+  },
 
-options.forEach(option => {
+  {
+    question: "How many continents are there?",
+    options: ["5", "6", "7", "8"],
+    answer: "7"
+  },
 
-  option.addEventListener("click", function() {
+  {
+    question: "Which is the largest ocean on Earth?",
+    options: [
+      "Atlantic Ocean",
+      "Pacific Ocean",
+      "Indian Ocean",
+      "Arctic Ocean"
+    ],
+    answer: "Pacific Ocean"
+  },
 
-    const question = this.dataset.q;
+  {
+    question: "Who wrote the Indian national anthem?",
+    options: [
+      "Rabindranath Tagore",
+      "Mahatma Gandhi",
+      "Jawaharlal Nehru",
+      "Subhas Chandra Bose"
+    ],
+    answer: "Rabindranath Tagore"
+  },
 
-    selected[question] = this.dataset.answer;
+  {
+    question: "What is H₂O commonly called?",
+    options: [
+      "Water",
+      "Oxygen",
+      "Hydrogen",
+      "Salt"
+    ],
+    answer: "Water"
+  },
 
-    document
-      .querySelectorAll('.option[data-q="' + question + '"]')
-      .forEach(btn => btn.classList.remove("selected"));
+  {
+    question: "Which is the fastest land animal?",
+    options: [
+      "Lion",
+      "Cheetah",
+      "Tiger",
+      "Horse"
+    ],
+    answer: "Cheetah"
+  },
 
-    this.classList.add("selected");
+  {
+    question: "How many days are there in a leap year?",
+    options: [
+      "364",
+      "365",
+      "366",
+      "367"
+    ],
+    answer: "366"
+  },
 
-    if (Object.keys(selected).length === 25) {
-      submitBtn.disabled = false;
-    }
+  {
+    question: "Which is the largest planet in our Solar System?",
+    options: [
+      "Earth",
+      "Saturn",
+      "Jupiter",
+      "Neptune"
+    ],
+    answer: "Jupiter"
+  },
 
-  });
+  {
+    question: "What is the currency of Japan?",
+    options: [
+      "Yuan",
+      "Won",
+      "Yen",
+      "Dollar"
+    ],
+    answer: "Yen"
+  },
 
-});
-
-submitBtn.addEventListener("click", function() {
-
-  let score = 0;
-
-  for (let i = 1; i <= 25; i++) {
-
-    if (selected[i] === answers[i]) {
-      score++;
-    }
-
-  }
-
-  resultBox.classList.remove("hidden");
-
-  if (score === 25) {
-
-    resultBox.className = "card result success";
-
-    resultBox.innerHTML = `
-      <div class="big">🎉 25/25</div>
-
-      <p>Congratulations!</p>
-
-      <div class="prize">₹25,000</div>
-
-      <p class="info">
-        You answered all 25 questions correctly and
-        qualified for the ₹25,000 prize, subject to
-        the published contest rules and verification.
-      </p>
-
-      <hr>
-
-      <h3>Prize Unlock Step</h3>
-
-      <p class="info">
-        According to the contest rules, a ₹300 payment
-        is required for the prize-unlock step.
-      </p>
-
-      <p class="small">
-        Payment and prize eligibility are subject to
-        verification and the published terms.
-        Do not enter card PINs, passwords, or other
-        confidential banking information on this website.
-      </p>
-
-      <p class="small">
-        Payment instructions will be provided by the
-        official Gazella Giveaway organizer.
-      </p>
-    `;
-
-    resultBox.scrollIntoView({
-      behavior: "smooth"
-    });
-
-  } else {
-
-    resultBox.className = "card result warning";
-
-    resultBox.innerHTML = `
-      <div class="big">${score}/25</div>
-
-      <h3>Quiz Not Qualified</h3>
-
-      <p class="info">
-        You did not achieve the required 25/25 score.
-      </p>
-
-      <p class="small">
-        Only participants who answer all 25 questions
-        correctly qualify for the prize stage.
-      </p>
-    `;
-
-    resultBox.scrollIntoView({
-      behavior: "smooth"
-    });
-
-  }
-
-});
-
-</script>
-
-</body>
-</html>
+  {
+    question: "Which organ pumps blood around the human body?",
+    options: [
+     
