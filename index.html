@@ -1,0 +1,2904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width,
+initial-scale=1,
+maximum-scale=1,
+minimum-scale=1,
+user-scalable=no,
+viewport-fit=cover">
+
+<title>GAZELLE — WORLD FRONTIER</title>
+
+<style>
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-touch-callout:none;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  position:fixed;
+  inset:0;
+  background:#05080a;
+  touch-action:none;
+}
+
+body{
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+canvas{
+  position:fixed;
+  inset:0;
+  display:block;
+  width:100vw;
+  height:100vh;
+  touch-action:none;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="game"></canvas>
+
+<script>
+"use strict";
+
+/* =========================================================
+   GAZELLE — WORLD FRONTIER
+   Single-file player prototype
+========================================================= */
+
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+
+let W=window.innerWidth;
+let H=window.innerHeight;
+let DPR=Math.min(window.devicePixelRatio||1,2);
+
+function resize(){
+
+  W=window.innerWidth;
+  H=window.innerHeight;
+
+  DPR=Math.min(window.devicePixelRatio||1,2);
+
+  canvas.width=Math.floor(W*DPR);
+  canvas.height=Math.floor(H*DPR);
+
+  canvas.style.width=W+"px";
+  canvas.style.height=H+"px";
+
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+}
+
+window.addEventListener("resize",resize);
+resize();
+
+/* Block browser gestures */
+[
+  "touchstart",
+  "touchmove",
+  "touchend",
+  "gesturestart",
+  "gesturechange",
+  "gestureend",
+  "dblclick",
+  "contextmenu"
+].forEach(type=>{
+  document.addEventListener(
+    type,
+    function(e){
+      e.preventDefault();
+    },
+    {passive:false}
+  );
+});
+
+/* =========================================================
+   STATE
+========================================================= */
+
+let screen="intro";
+
+let selectedCharacter="ZEN";
+
+let money=0;
+let kills=0;
+let level=1;
+
+let cameraX=0;
+let cameraY=0;
+
+let message="";
+let messageTimer=0;
+
+let gameTime=0;
+
+/* =========================================================
+   WORLD
+========================================================= */
+
+const WORLD_W=7200;
+const WORLD_H=3200;
+
+let buildings=[];
+let trees=[];
+let roads=[];
+let vehicles=[];
+let enemies=[];
+let bots=[];
+let pickups=[];
+let bullets=[];
+let particles=[];
+
+/* =========================================================
+   PLAYER
+========================================================= */
+
+const player={
+  x:900,
+  y:1540,
+
+  w:42,
+  h:58,
+
+  vx:0,
+  vy:0,
+
+  hp:200,
+  maxHp:200,
+
+  speed:4.5,
+  jump:10.5,
+
+  grounded:false,
+  facing:1,
+
+  weapon:0,
+  ammo:30,
+
+  inVehicle:null
+};
+
+const weapons=[
+  {
+    name:"PISTOL",
+    damage:25,
+    range:600,
+    cooldown:.33,
+    ammo:12
+  },
+  {
+    name:"SMG",
+    damage:12,
+    range:650,
+    cooldown:.105,
+    ammo:30
+  },
+  {
+    name:"RIFLE",
+    damage:34,
+    range:850,
+    cooldown:.37,
+    ammo:30
+  }
+];
+
+/* =========================================================
+   INPUT
+========================================================= */
+
+const input={
+  left:false,
+  right:false,
+  up:false,
+  down:false,
+  jump:false,
+  fire:false
+};
+
+let jumpPressed=false;
+
+window.addEventListener("keydown",e=>{
+
+  const allowed=[
+    "ArrowLeft",
+    "ArrowRight",
+    "ArrowUp",
+    "ArrowDown",
+    "Space",
+    "KeyA",
+    "KeyD",
+    "KeyW",
+    "KeyS"
+  ];
+
+  if(allowed.includes(e.code)){
+    e.preventDefault();
+  }
+
+  if(e.code==="ArrowLeft"||e.code==="KeyA")
+    input.left=true;
+
+  if(e.code==="ArrowRight"||e.code==="KeyD")
+    input.right=true;
+
+  if(e.code==="ArrowUp"||e.code==="KeyW")
+    input.up=true;
+
+  if(e.code==="ArrowDown"||e.code==="KeyS")
+    input.down=true;
+
+  if(e.code==="Space"){
+
+    if(!input.jump){
+      jumpPressed=true;
+    }
+
+    input.jump=true;
+  }
+
+  if(e.code==="Digit1")
+    player.weapon=0;
+
+  if(e.code==="Digit2")
+    player.weapon=1;
+
+  if(e.code==="Digit3")
+    player.weapon=2;
+});
+
+window.addEventListener("keyup",e=>{
+
+  if(e.code==="ArrowLeft"||e.code==="KeyA")
+    input.left=false;
+
+  if(e.code==="ArrowRight"||e.code==="KeyD")
+    input.right=false;
+
+  if(e.code==="ArrowUp"||e.code==="KeyW")
+    input.up=false;
+
+  if(e.code==="ArrowDown"||e.code==="KeyS")
+    input.down=false;
+
+  if(e.code==="Space")
+    input.jump=false;
+});
+
+/* =========================================================
+   AUDIO
+========================================================= */
+
+let audioContext=null;
+
+function startAudio(){
+
+  if(!audioContext){
+
+    try{
+
+      audioContext=
+        new(window.AudioContext||
+        window.webkitAudioContext)();
+
+    }catch(e){
+      return;
+    }
+  }
+
+  if(audioContext.state==="suspended"){
+    audioContext.resume();
+  }
+}
+
+function tone(
+  frequency,
+  duration=.08,
+  type="sine",
+  volume=.03
+){
+
+  if(!audioContext)return;
+
+  try{
+
+    const oscillator=
+      audioContext.createOscillator();
+
+    const gain=
+      audioContext.createGain();
+
+    oscillator.type=type;
+    oscillator.frequency.value=frequency;
+
+    gain.gain.setValueAtTime(
+      volume,
+      audioContext.currentTime
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+      .0001,
+      audioContext.currentTime+duration
+    );
+
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+
+    oscillator.start();
+
+    oscillator.stop(
+      audioContext.currentTime+duration
+    );
+
+  }catch(e){}
+}
+
+function gunSound(){
+
+  tone(80,.055,"sawtooth",.05);
+
+  setTimeout(()=>{
+    tone(42,.08,"square",.025);
+  },18);
+}
+
+function pickupSound(){
+  tone(650,.07,"sine",.035);
+}
+
+function jumpSound(){
+  tone(300,.08,"triangle",.025);
+}
+
+function damageSound(){
+  tone(110,.06,"square",.035);
+}
+
+/* =========================================================
+   JOYSTICK
+========================================================= */
+
+const joystick={
+  active:false,
+  pointer:null,
+
+  baseX:90,
+  baseY:0,
+
+  knobX:90,
+  knobY:0,
+
+  radius:62
+};
+
+function joystickZone(x,y){
+
+  return(
+    x<W*.34 &&
+    y>H*.50
+  );
+}
+
+/* =========================================================
+   POINTER CONTROLS
+========================================================= */
+
+canvas.addEventListener("pointerdown",e=>{
+
+  startAudio();
+
+  const x=e.clientX;
+  const y=e.clientY;
+
+  /* INTRO */
+
+  if(screen==="intro"){
+
+    screen="menu";
+    tone(440,.12);
+
+    return;
+  }
+
+  /* MENU */
+
+  if(screen==="menu"){
+
+    if(
+      x>W/2-160 &&
+      x<W/2+160 &&
+      y>H*.58-40 &&
+      y<H*.58+40
+    ){
+      startGame();
+    }
+
+    return;
+  }
+
+  /* GAME OVER */
+
+  if(screen==="gameover"){
+
+    if(
+      x>W/2-160 &&
+      x<W/2+160 &&
+      y>H*.62-40 &&
+      y<H*.62+40
+    ){
+      startGame();
+    }
+
+    return;
+  }
+
+  /* WIN */
+
+  if(screen==="win"){
+
+    if(
+      x>W/2-160 &&
+      x<W/2+160 &&
+      y>H*.72-40 &&
+      y<H*.72+40
+    ){
+      startGame();
+    }
+
+    return;
+  }
+
+  if(screen!=="game")return;
+
+  /* JOYSTICK */
+
+  if(joystickZone(x,y)){
+
+    joystick.active=true;
+    joystick.pointer=e.pointerId;
+
+    joystick.baseX=x;
+    joystick.baseY=y;
+
+    joystick.knobX=x;
+    joystick.knobY=y;
+
+    try{
+      canvas.setPointerCapture(e.pointerId);
+    }catch(_){}
+
+    return;
+  }
+
+  /* JUMP */
+
+  if(
+    x>W*.77 &&
+    y>H*.65
+  ){
+
+    jumpPressed=true;
+    input.jump=true;
+
+    return;
+  }
+
+  /* FIRE */
+
+  if(
+    x>W*.66 &&
+    y>H*.35 &&
+    y<H*.73
+  ){
+
+    input.fire=true;
+
+    return;
+  }
+
+  /* WEAPON SWITCH */
+
+  if(
+    x>W-150 &&
+    y<85
+  ){
+
+    player.weapon=
+      (player.weapon+1)%weapons.length;
+
+    tone(520,.05);
+
+    return;
+  }
+
+  /* VEHICLE */
+
+  if(
+    y>H*.80 &&
+    x>W*.38 &&
+    x<W*.64
+  ){
+
+    useVehicle();
+
+    return;
+  }
+});
+
+canvas.addEventListener("pointermove",e=>{
+
+  if(!joystick.active)return;
+
+  if(e.pointerId!==joystick.pointer)return;
+
+  let dx=e.clientX-joystick.baseX;
+  let dy=e.clientY-joystick.baseY;
+
+  const distance=Math.hypot(dx,dy);
+
+  if(distance>joystick.radius){
+
+    dx=dx/distance*joystick.radius;
+    dy=dy/distance*joystick.radius;
+  }
+
+  joystick.knobX=
+    joystick.baseX+dx;
+
+  joystick.knobY=
+    joystick.baseY+dy;
+
+  input.left=dx<-12;
+  input.right=dx>12;
+  input.up=dy<-12;
+  input.down=dy>12;
+});
+
+function pointerEnd(e){
+
+  if(e.pointerId===joystick.pointer){
+
+    joystick.active=false;
+
+    input.left=false;
+    input.right=false;
+    input.up=false;
+    input.down=false;
+  }
+
+  input.jump=false;
+  input.fire=false;
+}
+
+canvas.addEventListener("pointerup",pointerEnd);
+canvas.addEventListener("pointercancel",pointerEnd);
+
+/* =========================================================
+   WORLD GENERATION
+========================================================= */
+
+function createWorld(){
+
+  buildings=[];
+  trees=[];
+  roads=[];
+  vehicles=[];
+  enemies=[];
+  bots=[];
+  pickups=[];
+  bullets=[];
+  particles=[];
+
+  /* ROADS */
+
+  roads.push(
+    {
+      x:0,
+      y:1420,
+      w:WORLD_W,
+      h:180
+    },
+    {
+      x:2500,
+      y:0,
+      w:170,
+      h:WORLD_H
+    },
+    {
+      x:5050,
+      y:0,
+      w:170,
+      h:WORLD_H
+    }
+  );
+
+  /* HOUSES */
+
+  for(let i=0;i<42;i++){
+
+    buildings.push({
+
+      x:250+(i*487)%6500,
+
+      y:250+(i*733)%2450,
+
+      w:120+(i%4)*35,
+
+      h:90+(i%3)*35
+    });
+  }
+
+  /* NATURE */
+
+  for(let i=0;i<145;i++){
+
+    trees.push({
+
+      x:80+(i*151)%7000,
+
+      y:80+(i*277)%3000,
+
+      r:17+(i%4)*4
+    });
+  }
+
+  /* VEHICLES */
+
+  vehicles.push(
+
+    {
+      x:1350,
+      y:1535,
+      w:120,
+      h:58,
+      type:"JEEP",
+      speed:7,
+      occupied:false
+    },
+
+    {
+      x:3200,
+      y:1320,
+      w:78,
+      h:42,
+      type:"BIKE",
+      speed:10,
+      occupied:false
+    },
+
+    {
+      x:5600,
+      y:1530,
+      w:155,
+      h:70,
+      type:"MONSTER TRUCK",
+      speed:6,
+      occupied:false
+    }
+  );
+
+  /* ENEMIES */
+
+  for(let i=0;i<25;i++){
+
+    enemies.push({
+
+      x:500+(i*521)%6400,
+
+      y:500+(i*337)%2300,
+
+      w:40,
+      h:55,
+
+      hp:100,
+      maxHp:100,
+
+      speed:1.05+(i%4)*.18,
+
+      alive:true
+    });
+  }
+
+  /* BOTS */
+
+  for(let i=0;i<18;i++){
+
+    bots.push({
+
+      x:600+(i*681)%6500,
+
+      y:400+(i*427)%2500,
+
+      w:40,
+      h:56,
+
+      hp:200,
+      maxHp:200,
+
+      speed:1.5+(i%3)*.2,
+
+      alive:true,
+
+      targetX:0,
+      targetY:0,
+
+      changeTimer:0,
+      attackTimer:0
+    });
+  }
+
+  /* LOOT */
+
+  for(let i=0;i<75;i++){
+
+    let type;
+
+    if(i%4===0)
+      type="MEDKIT";
+    else if(i%4===1)
+      type="AMMO";
+    else
+      type="MONEY";
+
+    pickups.push({
+
+      x:150+(i*331)%6800,
+
+      y:150+(i*239)%2900,
+
+      type:type,
+
+      value:type==="MONEY"
+        ?25+(i%5)*10
+        :1,
+
+      taken:false
+    });
+  }
+}
+
+/* =========================================================
+   START
+========================================================= */
+
+function startGame(){
+
+  startAudio();
+
+  createWorld();
+
+  screen="game";
+
+  level=1;
+  kills=0;
+  money=0;
+
+  player.x=900;
+  player.y=1300;
+
+  player.vx=0;
+  player.vy=0;
+
+  player.hp=200;
+
+  player.weapon=0;
+  player.ammo=30;
+
+  player.inVehicle=null;
+
+  cameraX=0;
+  cameraY=0;
+
+  showMessage("WELCOME TO GAZELLE");
+}
+
+/* =========================================================
+   MESSAGE
+========================================================= */
+
+function showMessage(text){
+
+  message=text;
+  messageTimer=2.2;
+}
+
+/* =========================================================
+   PLAYER
+========================================================= */
+
+let shotTimer=0;
+
+function updatePlayer(dt){
+
+  let dx=0;
+  let dy=0;
+
+  if(input.left)dx--;
+  if(input.right)dx++;
+
+  if(input.up)dy--;
+  if(input.down)dy++;
+
+  /* Vehicle movement */
+
+  if(player.inVehicle){
+
+    player.x+=
+      dx*player.inVehicle.speed;
+
+    player.y+=
+      dy*player.inVehicle.speed;
+
+    player.inVehicle.x=
+      player.x-35;
+
+    player.inVehicle.y=
+      player.y+15;
+
+  }else{
+
+    /* Horizontal */
+
+    if(dx!==0){
+
+      player.vx+=dx*.75;
+
+      player.facing=dx;
+
+    }else{
+
+      player.vx*=.76;
+    }
+
+    player.vx=Math.max(
+      -player.speed,
+      Math.min(
+        player.speed,
+        player.vx
+      )
+    );
+
+    player.x+=player.vx;
+
+    /* Gravity */
+
+    player.vy+=.5;
+
+    if(player.vy>12)
+      player.vy=12;
+
+    /* Jump */
+
+    if(
+      jumpPressed &&
+      player.grounded
+    ){
+
+      player.vy=-player.jump;
+
+      player.grounded=false;
+
+      jumpSound();
+    }
+
+    jumpPressed=false;
+
+    player.y+=player.vy;
+
+    /* Ground */
+
+    const ground=1600;
+
+    if(
+      player.y+player.h>=ground
+    ){
+
+      player.y=
+        ground-player.h;
+
+      player.vy=0;
+
+      player.grounded=true;
+
+    }else{
+
+      player.grounded=false;
+    }
+  }
+
+  /* Boundaries */
+
+  player.x=Math.max(
+    20,
+    Math.min(
+      WORLD_W-player.w-20,
+      player.x
+    )
+  );
+
+  player.y=Math.max(
+    100,
+    Math.min(
+      WORLD_H-player.h,
+      player.y
+    )
+  );
+
+  /* Shooting */
+
+  if(input.fire){
+
+    shotTimer-=dt;
+
+    const weapon=
+      weapons[player.weapon];
+
+    if(
+      shotTimer<=0 &&
+      player.ammo>0
+    ){
+
+      shoot();
+
+      shotTimer=
+        weapon.cooldown;
+    }
+  }
+
+  /* Loot */
+
+  for(const item of pickups){
+
+    if(item.taken)continue;
+
+    const distance=Math.hypot(
+      player.x-item.x,
+      player.y-item.y
+    );
+
+    if(distance<48){
+
+      item.taken=true;
+
+      if(item.type==="MONEY"){
+
+        money+=item.value;
+
+        showMessage(
+          "+"+item.value+" MONEY"
+        );
+      }
+
+      if(item.type==="AMMO"){
+
+        player.ammo+=30;
+
+        showMessage("AMMO +30");
+      }
+
+      if(item.type==="MEDKIT"){
+
+        player.hp=
+          Math.min(
+            player.maxHp,
+            player.hp+60
+          );
+
+        showMessage("MEDKIT +60 HP");
+      }
+
+      pickupSound();
+    }
+  }
+
+  /* Enemy contact */
+
+  for(const enemy of enemies){
+
+    if(!enemy.alive)continue;
+
+    const distance=Math.hypot(
+      player.x-enemy.x,
+      player.y-enemy.y
+    );
+
+    if(distance<52){
+
+      player.hp-=18*dt;
+
+      if(player.hp<=0){
+
+        gameOver();
+        return;
+      }
+    }
+  }
+
+  /* Bot contact */
+
+  for(const bot of bots){
+
+    if(!bot.alive)continue;
+
+    const distance=Math.hypot(
+      player.x-bot.x,
+      player.y-bot.y
+    );
+
+    if(distance<48){
+
+      player.hp-=10*dt;
+
+      if(player.hp<=0){
+
+        gameOver();
+        return;
+      }
+    }
+  }
+
+  /* Camera */
+
+  cameraX+=(
+    player.x-W*.42-cameraX
+  )*.09;
+
+  cameraY+=(
+    player.y-H*.50-cameraY
+  )*.06;
+
+  cameraX=Math.max(
+    0,
+    Math.min(
+      WORLD_W-W,
+      cameraX
+    )
+  );
+
+  cameraY=Math.max(
+    0,
+    Math.min(
+      WORLD_H-H,
+      cameraY
+    )
+  );
+}
+
+/* =========================================================
+   SHOOT
+========================================================= */
+
+function shoot(){
+
+  const weapon=
+    weapons[player.weapon];
+
+  player.ammo--;
+
+  bullets.push({
+
+    x:
+      player.x+
+      player.w/2,
+
+    y:
+      player.y+
+      player.h/2,
+
+    vx:
+      player.facing*14,
+
+    vy:0,
+
+    damage:weapon.damage,
+
+    distance:0,
+
+    range:weapon.range,
+
+    dead:false
+  });
+
+  gunSound();
+}
+
+/* =========================================================
+   BULLETS
+========================================================= */
+
+function updateBullets(){
+
+  for(const bullet of bullets){
+
+    bullet.x+=bullet.vx;
+    bullet.y+=bullet.vy;
+
+    bullet.distance+=
+      Math.abs(bullet.vx);
+
+    if(
+      bullet.distance>
+      bullet.range
+    ){
+
+      bullet.dead=true;
+      continue;
+    }
+
+    for(const enemy of enemies){
+
+      if(!enemy.alive)continue;
+
+      if(
+        bullet.x>enemy.x &&
+        bullet.x<enemy.x+enemy.w &&
+        bullet.y>enemy.y &&
+        bullet.y<enemy.y+enemy.h
+      ){
+
+        enemy.hp-=bullet.damage;
+
+        bullet.dead=true;
+
+        damageSound();
+
+        if(enemy.hp<=0){
+
+          enemy.alive=false;
+
+          kills++;
+
+          money+=20;
+
+          showMessage(
+            "+20 MONEY • ENEMY DOWN"
+          );
+
+          for(let i=0;i<10;i++){
+
+            particles.push({
+
+              x:enemy.x+20,
+
+              y:enemy.y+20,
+
+              vx:(Math.random()-.5)*4,
+
+              vy:(Math.random()-.5)*4,
+
+              life:30
+            });
+          }
+        }
+
+        break;
+      }
+    }
+  }
+
+  bullets=
+    bullets.filter(
+      bullet=>!bullet.dead
+    );
+}
+
+/* =========================================================
+   ENEMIES
+========================================================= */
+
+function updateEnemies(){
+
+  for(const enemy of enemies){
+
+    if(!enemy.alive)continue;
+
+    const dx=
+      player.x-enemy.x;
+
+    const dy=
+      player.y-enemy.y;
+
+    const distance=
+      Math.hypot(dx,dy);
+
+    if(
+      distance<700 &&
+      distance>55
+    ){
+
+      enemy.x+=
+        dx/distance*
+        enemy.speed;
+
+      enemy.y+=
+        dy/distance*
+        enemy.speed;
+    }
+  }
+}
+
+/* =========================================================
+   BOTS
+========================================================= */
+
+function updateBots(dt){
+
+  for(const bot of bots){
+
+    if(!bot.alive)continue;
+
+    bot.changeTimer-=dt;
+    bot.attackTimer-=dt;
+
+    if(bot.changeTimer<=0){
+
+      bot.changeTimer=
+        2+Math.random()*3;
+
+      bot.targetX=
+        player.x+
+        (Math.random()-.5)*900;
+
+      bot.targetY=
+        player.y+
+        (Math.random()-.5)*500;
+    }
+
+    const dx=
+      bot.targetX-bot.x;
+
+    const dy=
+      bot.targetY-bot.y;
+
+    const distance=
+      Math.hypot(dx,dy);
+
+    if(distance>30){
+
+      bot.x+=
+        dx/distance*
+        bot.speed;
+
+      bot.y+=
+        dy/distance*
+        bot.speed;
+    }
+
+    const playerDistance=
+      Math.hypot(
+        player.x-bot.x,
+        player.y-bot.y
+      );
+
+    if(
+      playerDistance<550 &&
+      bot.attackTimer<=0
+    ){
+
+      bot.attackTimer=
+        1.2+Math.random();
+
+      if(Math.random()<.3){
+
+        player.hp-=8;
+
+        showMessage(
+          "ENEMY BOT ATTACK"
+        );
+
+        if(player.hp<=0)
+          gameOver();
+      }
+    }
+
+    bot.x=Math.max(
+      0,
+      Math.min(
+        WORLD_W-bot.w,
+        bot.x
+      )
+    );
+
+    bot.y=Math.max(
+      0,
+      Math.min(
+        WORLD_H-bot.h,
+        bot.y
+      )
+    );
+  }
+}
+
+/* =========================================================
+   VEHICLE
+========================================================= */
+
+function useVehicle(){
+
+  if(player.inVehicle){
+
+    player.inVehicle.occupied=false;
+
+    player.inVehicle=null;
+
+    showMessage("LEFT VEHICLE");
+
+    tone(180,.1,"square");
+
+    return;
+  }
+
+  let nearest=null;
+  let nearestDistance=130;
+
+  for(const vehicle of vehicles){
+
+    if(vehicle.occupied)continue;
+
+    const distance=
+      Math.hypot(
+        player.x-vehicle.x,
+        player.y-vehicle.y
+      );
+
+    if(distance<nearestDistance){
+
+      nearestDistance=distance;
+      nearest=vehicle;
+    }
+  }
+
+  if(nearest){
+
+    nearest.occupied=true;
+
+    player.inVehicle=nearest;
+
+    showMessage(
+      "ENTERED "+
+      nearest.type
+    );
+
+    tone(200,.12,"square");
+  }
+}
+
+/* =========================================================
+   GAME OVER
+========================================================= */
+
+function gameOver(){
+
+  if(screen!=="game")return;
+
+  screen="gameover";
+
+  tone(60,.35,"sawtooth",.055);
+}
+
+/* =========================================================
+   WORLD DRAW
+========================================================= */
+
+function drawWorld(){
+
+  /* Sky */
+
+  const sky=
+    ctx.createLinearGradient(
+      0,
+      0,
+      0,
+      H
+    );
+
+  sky.addColorStop(
+    0,
+    "#6f8e94"
+  );
+
+  sky.addColorStop(
+    1,
+    "#b4b08e"
+  );
+
+  ctx.fillStyle=sky;
+
+  ctx.fillRect(
+    0,
+    0,
+    W,
+    H
+  );
+
+  ctx.save();
+
+  ctx.translate(
+    -cameraX,
+    -cameraY
+  );
+
+  /* Ground */
+
+  ctx.fillStyle="#62755d";
+
+  ctx.fillRect(
+    0,
+    0,
+    WORLD_W,
+    WORLD_H
+  );
+
+  /* distant mountains */
+
+  ctx.fillStyle="#51666a";
+
+  for(
+    let x=-500;
+    x<WORLD_W+500;
+    x+=500
+  ){
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      x,
+      650
+    );
+
+    ctx.lineTo(
+      x+250,
+      300+(x%250)
+    );
+
+    ctx.lineTo(
+      x+500,
+      650
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+  }
+
+  /* Roads */
+
+  ctx.fillStyle="#414849";
+
+  for(const road of roads){
+
+    ctx.fillRect(
+      road.x,
+      road.y,
+      road.w,
+      road.h
+    );
+  }
+
+  /* road lines */
+
+  ctx.strokeStyle="#a4a18b";
+  ctx.lineWidth=4;
+  ctx.setLineDash([35,35]);
+
+  for(const road of roads){
+
+    ctx.beginPath();
+
+    if(road.w>road.h){
+
+      ctx.moveTo(
+        road.x,
+        road.y+road.h/2
+      );
+
+      ctx.lineTo(
+        road.x+road.w,
+        road.y+road.h/2
+      );
+
+    }else{
+
+      ctx.moveTo(
+        road.x+road.w/2,
+        road.y
+      );
+
+      ctx.lineTo(
+        road.x+road.w/2,
+        road.y+road.h
+      );
+    }
+
+    ctx.stroke();
+  }
+
+  ctx.setLineDash([]);
+
+  /* Buildings */
+
+  for(const building of buildings){
+
+    ctx.fillStyle="#62594d";
+
+    ctx.fillRect(
+      building.x,
+      building.y,
+      building.w,
+      building.h
+    );
+
+    ctx.fillStyle="#3b4142";
+
+    ctx.fillRect(
+      building.x+10,
+      building.y+10,
+      building.w-20,
+      13
+    );
+
+    ctx.fillStyle="#293538";
+
+    for(
+      let x=building.x+20;
+      x<building.x+
+        building.w-15;
+      x+=35
+    ){
+
+      ctx.fillRect(
+        x,
+        building.y+38,
+        15,
+        20
+      );
+    }
+  }
+
+  /* Trees */
+
+  for(const tree of trees){
+
+    ctx.fillStyle="#493c2e";
+
+    ctx.fillRect(
+      tree.x-5,
+      tree.y,
+      10,
+      30
+    );
+
+    ctx.fillStyle="#31513a";
+
+    ctx.beginPath();
+
+    ctx.arc(
+      tree.x,
+      tree.y-5,
+      tree.r,
+      0,
+      Math.PI*2
+    );
+
+    ctx.fill();
+
+    ctx.fillStyle="#466a48";
+
+    ctx.beginPath();
+
+    ctx.arc(
+      tree.x-7,
+      tree.y-10,
+      tree.r*.65,
+      0,
+      Math.PI*2
+    );
+
+    ctx.fill();
+  }
+
+  /* Vehicles */
+
+  for(const vehicle of vehicles){
+
+    drawVehicle(vehicle);
+  }
+
+  /* Loot */
+
+  for(const item of pickups){
+
+    if(item.taken)continue;
+
+    if(item.type==="MONEY"){
+
+      ctx.fillStyle="#d8bd52";
+
+      ctx.beginPath();
+
+      ctx.arc(
+        item.x,
+        item.y,
+        9,
+        0,
+        Math.PI*2
+      );
+
+      ctx.fill();
+    }
+
+    if(item.type==="MEDKIT"){
+
+      ctx.fillStyle="#e7e8e5";
+
+      ctx.fillRect(
+        item.x-10,
+        item.y-10,
+        20,
+        20
+      );
+
+      ctx.fillStyle="#c95252";
+
+      ctx.fillRect(
+        item.x-3,
+        item.y-8,
+        6,
+        16
+      );
+
+      ctx.fillRect(
+        item.x-8,
+        item.y-3,
+        16,
+        6
+      );
+    }
+
+    if(item.type==="AMMO"){
+
+      ctx.fillStyle="#bca967";
+
+      ctx.fillRect(
+        item.x-8,
+        item.y-12,
+        16,
+        24
+      );
+    }
+  }
+
+  /* Enemies */
+
+  for(const enemy of enemies){
+
+    if(!enemy.alive)continue;
+
+    ctx.fillStyle="#a95350";
+
+    ctx.fillRect(
+      enemy.x,
+      enemy.y,
+      enemy.w,
+      enemy.h
+    );
+
+    ctx.fillStyle="#1c2426";
+
+    ctx.fillRect(
+      enemy.x+7,
+      enemy.y+9,
+      7,
+      7
+    );
+
+    ctx.fillRect(
+      enemy.x+26,
+      enemy.y+9,
+      7,
+      7
+    );
+
+    /* HP */
+
+    ctx.fillStyle="#202527";
+
+    ctx.fillRect(
+      enemy.x,
+      enemy.y-9,
+      enemy.w,
+      5
+    );
+
+    ctx.fillStyle="#d25c57";
+
+    ctx.fillRect(
+      enemy.x,
+      enemy.y-9,
+      enemy.w*
+      Math.max(
+        0,
+        enemy.hp/enemy.maxHp
+      ),
+      5
+    );
+  }
+
+  /* Bots */
+
+  for(const bot of bots){
+
+    if(!bot.alive)continue;
+
+    ctx.fillStyle="#4f7080";
+
+    ctx.fillRect(
+      bot.x,
+      bot.y,
+      bot.w,
+      bot.h
+    );
+
+    ctx.fillStyle="#d9e0df";
+
+    ctx.beginPath();
+
+    ctx.arc(
+      bot.x+20,
+      bot.y-5,
+      13,
+      0,
+      Math.PI*2
+    );
+
+    ctx.fill();
+  }
+
+  /* Bullets */
+
+  ctx.fillStyle="#f3df9a";
+
+  for(const bullet of bullets){
+
+    ctx.fillRect(
+      bullet.x-3,
+      bullet.y-2,
+      9,
+      4
+    );
+  }
+
+  /* Player */
+
+  drawPlayer();
+
+  /* Particles */
+
+  for(const particle of particles){
+
+    ctx.globalAlpha=
+      Math.max(
+        0,
+        particle.life/30
+      );
+
+    ctx.fillStyle="#e3ce68";
+
+    ctx.fillRect(
+      particle.x,
+      particle.y,
+      4,
+      4
+    );
+
+    ctx.globalAlpha=1;
+  }
+
+  ctx.restore();
+}
+
+/* =========================================================
+   VEHICLE DRAW
+========================================================= */
+
+function drawVehicle(vehicle){
+
+  ctx.save();
+
+  ctx.translate(
+    vehicle.x,
+    vehicle.y
+  );
+
+  if(vehicle.type==="JEEP"){
+
+    ctx.fillStyle="#303a3c";
+
+    ctx.fillRect(
+      0,
+      15,
+      110,
+      35
+    );
+
+    ctx.fillStyle="#182123";
+
+    ctx.fillRect(
+      22,
+      0,
+      58,
+      25
+    );
+
+    ctx.fillStyle="#91a2a5";
+
+    ctx.fillRect(
+      28,
+      5,
+      45,
+      15
+    );
+  }
+
+  if(vehicle.type==="BIKE"){
+
+    ctx.strokeStyle="#20282a";
+    ctx.lineWidth=7;
+
+    ctx.beginPath();
+
+    ctx.arc(
+      12,
+      32,
+      12,
+      0,
+      Math.PI*2
+    );
+
+    ctx.arc(
+      63,
+      32,
+      12,
+      0,
+      Math.PI*2
+    );
+
+    ctx.stroke();
+
+    ctx.fillStyle="#30393b";
+
+    ctx.fillRect(
+      20,
+      20,
+      35,
+      7
+    );
+  }
+
+  if(vehicle.type==="MONSTER TRUCK"){
+
+    ctx.fillStyle="#30383a";
+
+    ctx.fillRect(
+      0,
+      15,
+      140,
+      42
+    );
+
+    ctx.fillStyle="#202628";
+
+    ctx.fillRect(
+      30,
+      0,
+      70,
+      30
+    );
+
+    ctx.fillStyle="#8c999b";
+
+    ctx.fillRect(
+      37,
+      5,
+      55,
+      17
+    );
+  }
+
+  ctx.restore();
+}
+
+/* =========================================================
+   PLAYER DRAW
+========================================================= */
+
+function drawPlayer(){
+
+  const x=player.x;
+  const y=player.y;
+
+  ctx.save();
+
+  /* shadow */
+
+  ctx.fillStyle="rgba(0,0,0,.25)";
+
+  ctx.beginPath();
+
+  ctx.ellipse(
+    x+21,
+    y+62,
+    25,
+    7,
+    0,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+  /* body */
+
+  ctx.fillStyle=
+    selectedCharacter==="REN"
+    ?" #a9cdd2"
+    :"#d5dcdc";
+
+  ctx.fillRect(
+    x+5,
+    y+10,
+    32,
+    42
+  );
+
+  /* head */
+
+  ctx.fillStyle="#d5b394";
+
+  ctx.beginPath();
+
+  ctx.arc(
+    x+21,
+    y+2,
+    14,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+  /* hair */
+
+  ctx.fillStyle="#1d2224";
+
+  ctx.beginPath();
+
+  ctx.arc(
+    x+21,
+    y-4,
+    14,
+    Math.PI,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+  /* legs */
+
+  ctx.fillStyle="#242b2d";
+
+  ctx.fillRect(
+    x+7,
+    y+50,
+    10,
+    12
+  );
+
+  ctx.fillRect(
+    x+25,
+    y+50,
+    10,
+    12
+  );
+
+  /* weapon */
+
+  ctx.fillStyle="#171c1e";
+
+  if(player.facing>0){
+
+    ctx.fillRect(
+      x+30,
+      y+25,
+      24,
+      6
+    );
+
+  }else{
+
+    ctx.fillRect(
+      x-12,
+      y+25,
+      24,
+      6
+    );
+  }
+
+  ctx.restore();
+}
+
+/* =========================================================
+   HUD
+========================================================= */
+
+function drawHUD(){
+
+  ctx.fillStyle="rgba(5,8,10,.80)";
+
+  ctx.fillRect(
+    0,
+    0,
+    W,
+    72
+  );
+
+  /* character */
+
+  ctx.textAlign="left";
+
+  ctx.fillStyle="#fff";
+
+  ctx.font="bold 14px Arial";
+
+  ctx.fillText(
+    selectedCharacter,
+    18,
+    21
+  );
+
+  /* HP background */
+
+  ctx.fillStyle="#252b2d";
+
+  ctx.fillRect(
+    18,
+    31,
+    190,
+    13
+  );
+
+  /* HP */
+
+  ctx.fillStyle="#67b873";
+
+  ctx.fillRect(
+    18,
+    31,
+    190*
+    Math.max(
+      0,
+      player.hp/player.maxHp
+    ),
+    13
+  );
+
+  ctx.fillStyle="#fff";
+
+  ctx.font="11px Arial";
+
+  ctx.fillText(
+    Math.floor(
+      Math.max(0,player.hp)
+    )+" / 200 HP",
+    25,
+    41
+  );
+
+  /* center */
+
+  ctx.textAlign="center";
+
+  ctx.font="bold 13px Arial";
+
+  ctx.fillText(
+    "GAZELLE FRONTIER",
+    W/2,
+    21
+  );
+
+  ctx.fillStyle="#aeb8bc";
+
+  ctx.font="11px Arial";
+
+  ctx.fillText(
+    "LEVEL "+level+
+    "  •  KILLS "+kills,
+    W/2,
+    43
+  );
+
+  /* right */
+
+  ctx.textAlign="right";
+
+  ctx.fillStyle="#dfc95f";
+
+  ctx.font="bold 13px Arial";
+
+  ctx.fillText(
+    "◆ "+money,
+    W-18,
+    22
+  );
+
+  ctx.fillStyle="#c4cccf";
+
+  ctx.font="11px Arial";
+
+  ctx.fillText(
+    weapons[player.weapon].name+
+    "  "+player.ammo,
+    W-18,
+    43
+  );
+}
+
+/* =========================================================
+   MINIMAP
+========================================================= */
+
+function drawMinimap(){
+
+  const size=125;
+
+  const x=W-size-18;
+  const y=85;
+
+  ctx.fillStyle="rgba(5,8,10,.80)";
+
+  ctx.fillRect(
+    x,
+    y,
+    size,
+    size
+  );
+
+  ctx.strokeStyle=
+    "rgba(230,235,235,.25)";
+
+  ctx.strokeRect(
+    x,
+    y,
+    size,
+    size
+  );
+
+  /* player */
+
+  ctx.fillStyle="#fff";
+
+  ctx.beginPath();
+
+  ctx.arc(
+    x+
+    player.x/WORLD_W*size,
+    y+
+    player.y/WORLD_H*size,
+    4,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+  /* bots */
+
+  ctx.fillStyle="#6392a4";
+
+  for(const bot of bots){
+
+    if(!bot.alive)continue;
+
+    ctx.fillRect(
+      x+
+      bot.x/WORLD_W*size-2,
+      y+
+      bot.y/WORLD_H*size-2,
+      4,
+      4
+    );
+  }
+
+  /* enemies */
+
+  ctx.fillStyle="#d05b57";
+
+  for(const enemy of enemies){
+
+    if(!enemy.alive)continue;
+
+    ctx.fillRect(
+      x+
+      enemy.x/WORLD_W*size-2,
+      y+
+      enemy.y/WORLD_H*size-2,
+      4,
+      4
+    );
+  }
+}
+
+/* =========================================================
+   MOBILE CONTROLS
+========================================================= */
+
+function drawControls(){
+
+  ctx.globalAlpha=.72;
+
+  let baseX=
+    joystick.active
+    ?joystick.baseX
+    :90;
+
+  let baseY=
+    joystick.active
+    ?joystick.baseY
+    :H-110;
+
+  /* joystick */
+
+  ctx.fillStyle=
+    "rgba(220,230,232,.10)";
+
+  ctx.strokeStyle=
+    "rgba(230,238,239,.40)";
+
+  ctx.lineWidth=2;
+
+  ctx.beginPath();
+
+  ctx.arc(
+    baseX,
+    baseY,
+    joystick.radius,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+  ctx.stroke();
+
+  const knobX=
+    joystick.active
+    ?joystick.knobX
+    :baseX;
+
+  const knobY=
+    joystick.active
+    ?joystick.knobY
+    :baseY;
+
+  ctx.fillStyle=
+    "rgba(235,242,242,.50)";
+
+  ctx.beginPath();
+
+  ctx.arc(
+    knobX,
+    knobY,
+    27,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+  /* FIRE */
+
+  ctx.fillStyle=
+    "rgba(185,60,57,.45)";
+
+  ctx.beginPath();
+
+  ctx.arc(
+    W-90,
+    H-115,
+    52,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+  ctx.fillStyle="#fff";
+
+  ctx.font="bold 12px Arial";
+
+  ctx.textAlign="center";
+
+  ctx.fillText(
+    "FIRE",
+    W-90,
+    H-110
+  );
+
+  /* JUMP */
+
+  ctx.fillStyle=
+    "rgba(220,230,232,.16)";
+
+  ctx.beginPath();
+
+  ctx.arc(
+    W-90,
+    H-225,
+    43,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+  ctx.stroke();
+
+  ctx.fillStyle="#fff";
+
+  ctx.fillText(
+    "JUMP",
+    W-90,
+    H-221
+  );
+
+  /* VEHICLE */
+
+  if(
+    player.inVehicle ||
+    vehicles.some(vehicle=>
+      !vehicle.occupied &&
+      Math.hypot(
+        player.x-vehicle.x,
+        player.y-vehicle.y
+      )<130
+    )
+  ){
+
+    ctx.fillStyle=
+      "rgba(220,230,232,.17)";
+
+    ctx.beginPath();
+
+    ctx.roundRect(
+      W/2-65,
+      H-70,
+      130,
+      44,
+      12
+    );
+
+    ctx.fill();
+
+    ctx.fillStyle="#fff";
+
+    ctx.font="bold 10px Arial";
+
+    ctx.fillText(
+      player.inVehicle
+      ?"EXIT VEHICLE"
+      :"ENTER VEHICLE",
+      W/2,
+      H-43
+    );
+  }
+
+  ctx.globalAlpha=1;
+}
+
+/* =========================================================
+   MESSAGE
+========================================================= */
+
+function drawMessage(){
+
+  if(messageTimer<=0)return;
+
+  ctx.globalAlpha=
+    Math.min(
+      1,
+      messageTimer
+    );
+
+  const width=
+    Math.min(
+      420,
+      W-40
+    );
+
+  ctx.fillStyle=
+    "rgba(0,0,0,.62)";
+
+  ctx.fillRect(
+    W/2-width/2,
+    H*.16,
+    width,
+    44
+  );
+
+  ctx.fillStyle="#fff";
+
+  ctx.textAlign="center";
+
+  ctx.font="bold 13px Arial";
+
+  ctx.fillText(
+    message,
+    W/2,
+    H*.16+28
+  );
+
+  ctx.globalAlpha=1;
+}
+
+/* =========================================================
+   INTRO
+========================================================= */
+
+function drawIntro(){
+
+  ctx.fillStyle="#05080a";
+
+  ctx.fillRect(
+    0,
+    0,
+    W,
+    H
+  );
+
+  ctx.textAlign="center";
+
+  ctx.fillStyle="#e1e6e6";
+
+  ctx.font="900 60px Arial";
+
+  ctx.fillText(
+    "GAZELLE",
+    W/2,
+    H*.43
+  );
+
+  ctx.fillStyle="#7e8b8f";
+
+  ctx.font="bold 12px Arial";
+
+  ctx.fillText(
+    "WORLD FRONTIER",
+    W/2,
+    H*.43+34
+  );
+
+  ctx.fillStyle="#657174";
+
+  ctx.font="11px Arial";
+
+  ctx.fillText(
+    "TAP TO ENTER",
+    W/2,
+    H*.68
+  );
+}
+
+/* =========================================================
+   MENU
+========================================================= */
+
+function drawMenu(){
+
+  ctx.fillStyle="#080d10";
+
+  ctx.fillRect(
+    0,
+    0,
+    W,
+    H
+  );
+
+  ctx.textAlign="center";
+
+  ctx.fillStyle="#e2e7e7";
+
+  ctx.font="900 50px Arial";
+
+  ctx.fillText(
+    "GAZELLE",
+    W/2,
+    H*.27
+  );
+
+  ctx.fillStyle="#7e8c90";
+
+  ctx.font="bold 13px Arial";
+
+  ctx.fillText(
+    "WORLD FRONTIER",
+    W/2,
+    H*.27+30
+  );
+
+  /* Zen */
+
+  ctx.fillStyle="#d6b394";
+
+  ctx.beginPath();
+
+  ctx.arc(
+    W/2-65,
+    H*.42,
+    25,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+  /* Ren */
+
+  ctx.beginPath();
+
+  ctx.arc(
+    W/2+65,
+    H*.42,
+    25,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+  ctx.fillStyle="#202427";
+
+  ctx.font="bold 12px Arial";
+
+  ctx.fillText(
+    "ZEN",
+    W/2-65,
+    H*.42+50
+  );
+
+  ctx.fillText(
+    "REN",
+    W/2+65,
+    H*.42+50
+  );
+
+  /* Start */
+
+  ctx.fillStyle="#e6e9e9";
+
+  ctx.beginPath();
+
+  ctx.roundRect(
+    W/2-160,
+    H*.58-38,
+    320,
+    76,
+    20
+  );
+
+  ctx.fill();
+
+  ctx.fillStyle="#090d0f";
+
+  ctx.font="bold 17px Arial";
+
+  ctx.fillText(
+    "START FRONTIER",
+    W/2,
+    H*.58+6
+  );
+
+  ctx.fillStyle="#6d797d";
+
+  ctx.font="11px Arial";
+
+  ctx.fillText(
+    "Joystick • Fire • Jump • Vehicles",
+    W/2,
+    H*.72
+  );
+
+  ctx.fillText(
+    "A / D / W / S + Space on keyboard",
+    W/2,
+    H*.75
+  );
+}
+
+/* =========================================================
+   GAME OVER
+========================================================= */
+
+function drawGameOver(){
+
+  ctx.fillStyle="#05080a";
+
+  ctx.fillRect(
+    0,
+    0,
+    W,
+    H
+  );
+
+  ctx.textAlign="center";
+
+  ctx.fillStyle="#e1e6e6";
+
+  ctx.font="900 44px Arial";
+
+  ctx.fillText(
+    "YOU WERE DOWNED",
+    W/2,
+    H*.32
+  );
+
+  ctx.fillStyle="#9ca7aa";
+
+  ctx.font="14px Arial";
+
+  ctx.fillText(
+    "KILLS "+
+    kills+
+    "   •   MONEY "+
+    money,
+    W/2,
+    H*.43
+  );
+
+  ctx.fillStyle="#e6e9e9";
+
+  ctx.beginPath();
+
+  ctx.roundRect(
+    W/2-160,
+    H*.62-38,
+    320,
+    76,
+    20
+  );
+
+  ctx.fill();
+
+  ctx.fillStyle="#090d0f";
+
+  ctx.font="bold 16px Arial";
+
+  ctx.fillText(
+    "PLAY AGAIN",
+    W/2,
+    H*.62+6
+  );
+}
+
+/* =========================================================
+   WIN
+========================================================= */
+
+function drawWin(){
+
+  ctx.fillStyle="#05090b";
+
+  ctx.fillRect(
+    0,
+    0,
+    W,
+    H
+  );
+
+  ctx.textAlign="center";
+
+  ctx.fillStyle="#e8eded";
+
+  ctx.font="900 46px Arial";
+
+  ctx.fillText(
+    "FRONTIER COMPLETE",
+    W/2,
+    H*.28
+  );
+
+  ctx.font="900 58px Arial";
+
+  ctx.fillText(
+    "₹200",
+    W/2,
+    H*.43
+  );
+
+  ctx.fillStyle="#aab4b7";
+
+  ctx.font="13px Arial";
+
+  ctx.fillText(
+    "SAVE THIS SCREEN FOR VERIFICATION",
+    W/2,
+    H*.51
+  );
+
+  ctx.fillText(
+    "Contact @gazelle.giveaway",
+    W/2,
+    H*.56
+  );
+
+  ctx.fillStyle="#e6e9e9";
+
+  ctx.beginPath();
+
+  ctx.roundRect(
+    W/2-160,
+    H*.72-38,
+    320,
+    76,
+    20
+  );
+
+  ctx.fill();
+
+  ctx.fillStyle="#090d0f";
+
+  ctx.font="bold 16px Arial";
+
+  ctx.fillText(
+    "PLAY AGAIN",
+    W/2,
+    H*.72+6
+  );
+}
+
+/* =========================================================
+   UPDATE
+========================================================= */
+
+function update(dt){
+
+  gameTime+=dt;
+
+  if(screen==="intro"){
+    return;
+  }
+
+  if(screen!=="game"){
+    return;
+  }
+
+  updatePlayer(dt);
+
+  updateBullets();
+
+  updateEnemies();
+
+  updateBots(dt);
+
+  /* particles */
+
+  for(const particle of particles){
+
+    particle.x+=particle.vx;
+    particle.y+=particle.vy;
+
+    particle.life--;
+  }
+
+  particles=
+    particles.filter(
+      p=>p.life>0
+    );
+
+  /* message */
+
+  messageTimer-=dt;
+
+  /*
+     Prototype progression:
+     defeating enough enemies and
+     collecting money completes the build.
+  */
+
+  if(
+    kills>=10 &&
+    money>=200
+  ){
+
+    screen="win";
+
+    tone(
+      850,
+      .2,
+      "sine",
+      .06
+    );
+  }
+}
+
+/* =========================================================
+   DRAW
+========================================================= */
+
+function draw(){
+
+  if(screen==="intro"){
+
+    drawIntro();
+    return;
+  }
+
+  if(screen==="menu"){
+
+    drawMenu();
+    return;
+  }
+
+  if(screen==="gameover"){
+
+    drawGameOver();
+    return;
+  }
+
+  if(screen==="win"){
+
+    drawWin();
+    return;
+  }
+
+  drawWorld();
+
+  drawHUD();
+
+  drawMinimap();
+
+  drawControls();
+
+  drawMessage();
+}
+
+/* =========================================================
+   LOOP
+========================================================= */
+
+let lastTime=performance.now();
+
+function loop(now){
+
+  const dt=
+    Math.min(
+      .033,
+      (now-lastTime)/1000
+    );
+
+  lastTime=now;
+
+  update(dt);
+
+  draw();
+
+  requestAnimationFrame(loop);
+}
+
+requestAnimationFrame(loop);
+
+</script>
+</body>
+</html>
