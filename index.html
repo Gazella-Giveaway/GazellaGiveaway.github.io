@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gazella Giveaway</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:Arial,sans-serif;
+  background:#07070b;
+  color:white;
+  min-height:100vh;
+}
+.container{
+  max-width:650px;
+  margin:auto;
+  padding:25px 18px 60px;
+}
+.hero{
+  text-align:center;
+  padding:55px 15px 35px;
+}
+.hero h1{
+  font-size:clamp(38px,11vw,70px);
+  font-weight:900;
+  letter-spacing:-3px;
+}
+.hero h1 span{color:#00ffd5}
+.hero p{color:#aaa;margin-top:12px;font-size:15px}
+
+.card{
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:25px;
+  padding:22px;
+  margin-top:20px;
+  backdrop-filter:blur(15px);
+  box-shadow:0 20px 60px rgba(0,0,0,.4);
+}
+.question{
+  margin-bottom:25px;
+}
+.question h3{
+  font-size:17px;
+  margin-bottom:13px;
+}
+label{
+  display:block;
+  background:#11131a;
+  border:1px solid #272a35;
+  padding:13px;
+  border-radius:13px;
+  margin:8px 0;
+  cursor:pointer;
+}
+label:hover{
+  border-color:#00ffd5;
+}
+input{margin-right:8px}
+
+button{
+  width:100%;
+  border:0;
+  padding:16px;
+  border-radius:15px;
+  background:#00ffd5;
+  color:#00110e;
+  font-size:17px;
+  font-weight:800;
+  cursor:pointer;
+}
+button:hover{transform:scale(1.01)}
+
+#result{
+  display:none;
+  text-align:center;
+}
+.score{
+  font-size:50px;
+  font-weight:900;
+  color:#00ffd5;
+  margin:15px 0;
+}
+.success{
+  color:#00ffd5;
+  font-size:18px;
+  margin-bottom:20px;
+}
+.fail{
+  color:#ff7777;
+  font-size:18px;
+  margin-bottom:20px;
+}
+a{
+  color:#00ffd5;
+  text-decoration:none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<section class="hero">
+  <h1>THINK.<br><span>ANSWER.</span><br>WIN.</h1>
+  <p>Gazella Giveaway • General Knowledge Challenge</p>
+</section>
+
+<div class="card" id="quizCard">
+<form id="quiz">
+
+<div class="question">
+<h3>1. What is the capital of India?</h3>
+<label><input type="radio" name="q1" value="A"> Mumbai</label>
+<label><input type="radio" name="q1" value="B"> New Delhi</label>
+<label><input type="radio" name="q1" value="C"> Kolkata</label>
+<label><input type="radio" name="q1" value="D"> Chennai</label>
+</div>
+
+<div class="question">
+<h3>2. Which planet is known as the Red Planet?</h3>
+<label><input type="radio" name="q2" value="A"> Venus</label>
+<label><input type="radio" name="q2" value="B"> Mars</label>
+<label><input type="radio" name="q2" value="C"> Jupiter</label>
+<label><input type="radio" name="q2" value="D"> Mercury</label>
+</div>
+
+<div class="question">
+<h3>3. How many continents are there?</h3>
+<label><input type="radio" name="q3" value="A"> 5</label>
+<label><input type="radio" name="q3" value="B"> 6</label>
+<label><input type="radio" name="q3" value="C"> 7</label>
+<label><input type="radio" name="q3" value="D"> 8</label>
+</div>
+
+<div class="question">
+<h3>4. Which is the largest ocean?</h3>
+<label><input type="radio" name="q4" value="A"> Atlantic</label>
+<label><input type="radio" name="q4" value="B"> Indian</label>
+<label><input type="radio" name="q4" value="C"> Pacific</label>
+<label><input type="radio" name="q4" value="D"> Arctic</label>
+</div>
+
+<div class="question">
+<h3>5. Who wrote Romeo and Juliet?</h3>
+<label><input type="radio" name="q5" value="A"> Shakespeare</label>
+<label><input type="radio" name="q5" value="B"> Dickens</label>
+<label><input type="radio" name="q5" value="C"> Tolkien</label>
+<label><input type="radio" name="q5" value="D"> Austen</label>
+</div>
+
+<div class="question">
+<h3>6. What is H2O?</h3>
+<label><input type="radio" name="q6" value="A"> Oxygen</label>
+<label><input type="radio" name="q6" value="B"> Hydrogen</label>
+<label><input type="radio" name="q6" value="C"> Water</label>
+<label><input type="radio" name="q6" value="D"> Salt</label>
+</div>
+
+<div class="question">
+<h3>7. Which is the fastest land animal?</h3>
+<label><input type="radio" name="q7" value="A"> Lion</label>
+<label><input type="radio" name="q7" value="B"> Cheetah</label>
+<label><input type="radio" name="q7" value="C"> Horse</label>
+<label><input type="radio" name="q7" value="D"> Tiger</label>
+</div>
+
+<div class="question">
+<h3>8. How many days are in a leap year?</h3>
+<label><input type="radio" name="q8" value="A"> 364</label>
+<label><input type="radio" name="q8" value="B"> 365</label>
+<label><input type="radio" name="q8" value="C"> 366</label>
+<label><input type="radio" name="q8" value="D"> 367</label>
+</div>
+
+<div class="question">
+<h3>9. Which gas do humans need to breathe?</h3>
+<label><input type="radio" name="q9" value="A"> Oxygen</label>
+<label><input type="radio" name="q9" value="B"> Carbon dioxide</label>
+<label><input type="radio" name="q9" value="C"> Helium</label>
+<label><input type="radio" name="q9" value="D"> Hydrogen</label>
+</div>
+
+<div class="question">
+<h3>10. Which is the largest planet?</h3>
+<label><input type="radio" name="q10" value="A"> Earth</label>
+<label><input type="radio" name="q10" value="B"> Saturn</label>
+<label><input type="radio" name="q10" value="C"> Jupiter</label>
+<label><input type="radio" name="q10" value="D"> Neptune</label>
+</div>
+
+<div class="question">
+<h3>11. What is 12 × 12?</h3>
+<label><input type="radio" name="q11" value="A"> 124</label>
+<label><input type="radio" name="q11" value="B"> 144</label>
+<label><input type="radio" name="q11" value="C"> 154</label>
+<label><input type="radio" name="q11" value="D"> 164</label>
+</div>
+
+<div class="question">
+<h3>12. Which country is famous for the pyramids of Giza?</h3>
+<label><input type="radio" name="q12" value="A"> Greece</label>
+<label><input type="radio" name="q12" value="B"> Egypt</label>
+<label><input type="radio" name="q12" value="C"> Italy</label>
+<label><input type="radio" name="q12" value="D"> Mexico</label>
+</div>
+
+<div class="question">
+<h3>13. Which organ pumps blood around the body?</h3>
+<label><input type="radio" name="q13" value="A"> Brain</label>
+<label><input type="radio" name="q13" value="B"> Liver</label>
+<label><input type="radio" name="q13" value="C"> Heart</label>
+<label><input type="radio" name="q13" value="D"> Lung</label>
+</div>
+
+<div class="question">
+<h3>14. Which is the smallest prime number?</h3>
+<label><input type="radio" name="q14" value="A"> 0</label>
+<label><input type="radio" name="q14" value="B"> 1</label>
+<label><input type="radio" name="q14" value="C"> 2</label>
+<label><input type="radio" name="q14" value="D"> 3</label>
+</div>
+
+<div class="question">
+<h3>15. Which language has the most native speakers?</h3>
+<label><input type="radio" name="q15" value="A"> English</label>
+<label><input type="radio" name="q15" value="B"> Hindi</label>
+<label><input type="radio" name="q15" value="C"> Mandarin Chinese</label>
+<label><input type="radio" name="q15" value="D"> Spanish</label>
+</div>
+
+<button type="submit">SUBMIT QUIZ</button>
+</form>
+</div>
+
+<div class="card" id="result">
+<h2>QUIZ RESULT</h2>
+<div class="score" id="score"></div>
+<div id="message"></div>
+</div>
+
+</div>
+
+<script>
+const answers = [
+"B","B","C","C","A",
+"C","B","C","A","C",
+"B","B","C","C","C"
+];
+
+document.getElementById("quiz").addEventListener("submit",function(e){
+  e.preventDefault();
+
+  let score = 0;
+
+  answers.forEach((answer,index)=>{
+    const selected=document.querySelector(
+      `input[name="q${index+1}"]:checked`
+    );
+
+    if(selected && selected.value===answer){
+      score++;
+    }
+  });
+
+  document.getElementById("quizCard").style.display="none";
+  document.getElementById("result").style.display="block";
+  document.getElementById("score").textContent=score+"/15";
+
+  if(score===15){
+    document.getElementById("message").innerHTML=
+      `<div class="success">
+      🎉 Congratulations!<br><br>
+      You achieved 15/15.<br><br>
+      <strong>₹25,000 PRIZE UNLOCKED</strong><br><br>
+      <a href="redeem.html">CONTINUE TO REDEEM →</a>
+      </div>`;
+  }else{
+    document.getElementById("message").innerHTML=
+      `<div class="fail">
+      You need 15/15 to qualify.<br><br>
+      Please try again.
+      </div>`;
+  }
+});
+</script>
+
+</body>
+</html>
