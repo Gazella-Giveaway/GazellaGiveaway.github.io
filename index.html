@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Gazella Escape Run</title>
+
+<style>
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#050505;
+  color:#fff;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  touch-action:none;
+}
+
+#game{
+  position:relative;
+  width:100vw;
+  height:100vh;
+  overflow:hidden;
+  background:linear-gradient(#080b18,#111522 60%,#050505);
+}
+
+#hud{
+  position:absolute;
+  top:12px;
+  left:12px;
+  right:12px;
+  z-index:30;
+  display:flex;
+  justify-content:space-between;
+  gap:7px;
+  pointer-events:none;
+}
+
+.hudBox{
+  padding:8px 11px;
+  border:1px solid #333;
+  border-radius:12px;
+  background:rgba(0,0,0,.65);
+  backdrop-filter:blur(8px);
+  font-size:13px;
+  font-weight:800;
+}
+
+#world{
+  position:absolute;
+  left:0;
+  bottom:0;
+  width:5000px;
+  height:100%;
+}
+
+.platform{
+  position:absolute;
+  height:28px;
+  background:linear-gradient(#777,#353535);
+  border:2px solid #aaa;
+  border-radius:8px;
+  box-shadow:0 5px 15px rgba(0,0,0,.4);
+}
+
+.coin{
+  position:absolute;
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  background:#ffd43b;
+  box-shadow:0 0 18px #ffd43b;
+}
+
+.enemy{
+  position:absolute;
+  width:40px;
+  height:40px;
+  border-radius:10px;
+  background:#d83b3b;
+  box-shadow:0 0 18px rgba(255,50,50,.55);
+}
+
+#player{
+  position:absolute;
+  width:38px;
+  height:52px;
+  border-radius:11px;
+  background:linear-gradient(135deg,#f5c542,#9b6b00);
+  border:2px solid #ffe58a;
+  box-shadow:0 0 20px rgba(245,197,66,.55);
+  z-index:20;
+}
+
+#player:before{
+  content:"";
+  position:absolute;
+  width:7px;
+  height:7px;
+  background:#111;
+  border-radius:50%;
+  top:12px;
+  right:7px;
+}
+
+#exit{
+  position:absolute;
+  width:62px;
+  height:86px;
+  border:3px solid #f5c542;
+  border-radius:12px 12px 4px 4px;
+  background:#171717;
+  box-shadow:0 0 30px rgba(245,197,66,.55);
+  z-index:10;
+}
+
+#exitText{
+  position:absolute;
+  top:10px;
+  width:100%;
+  text-align:center;
+  color:#f5c542;
+  font-weight:900;
+  font-size:11px;
+}
+
+#controls{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:20px;
+  z-index:40;
+  display:flex;
+  justify-content:space-between;
+  padding:0 18px;
+  pointer-events:none;
+}
+
+.controlGroup{
+  display:flex;
+  gap:10px;
+  pointer-events:auto;
+}
+
+.control{
+  width:70px;
+  height:70px;
+  border-radius:20px;
+  border:1px solid #555;
+  background:rgba(20,20,20,.86);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:30px;
+  font-weight:900;
+  user-select:none;
+  box-shadow:0 8px 25px rgba(0,0,0,.5);
+  pointer-events:auto;
+}
+
+.control:active{
+  background:#f5c542;
+  color:#111;
+  transform:scale(.94);
+}
+
+#jump{
+  width:82px;
+  height:82px;
+  border-radius:50%;
+  background:#f5c542;
+  color:#111;
+}
+
+.screen{
+  position:absolute;
+  inset:0;
+  z-index:100;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:22px;
+  background:rgba(0,0,0,.84);
+  backdrop-filter:blur(10px);
+  text-align:center;
+}
+
+.panel{
+  width:min(430px,100%);
+  padding:30px 22px;
+  border:1px solid #333;
+  border-radius:25px;
+  background:linear-gradient(145deg,#181818,#090909);
+  box-shadow:0 25px 80px rgba(0,0,0,.75);
+}
+
+.brand{
+  color:#f5c542;
+  font-weight:900;
+  letter-spacing:3px;
+  font-size:13px;
+}
+
+h1{
+  font-size:38px;
+  margin:10px 0;
+}
+
+.gold{
+  color:#f5c542;
+}
+
+p{
+  color:#aaa;
+  line-height:1.6;
+}
+
+.mainBtn{
+  width:100%;
+  padding:16px;
+  margin-top:12px;
+  border:0;
+  border-radius:15px;
+  background:#f5c542;
+  color:#111;
+  font-size:16px;
+  font-weight:900;
+}
+
+.instagramBtn{
+  display:block;
+  width:100%;
+  padding:16px;
+  margin-top:12px;
+  border-radius:15px;
+  background:#fff;
+  color:#111;
+  text-decoration:none;
+  font-weight:900;
+}
+
+.hidden{
+  display:none!important;
+}
+
+.prize{
+  font-size:58px;
+  font-weight:900;
+  color:#f5c542;
+  margin:12px 0;
+}
+</style>
+</head>
+
+<body>
+
+<div id="game">
+
+<div id="hud">
+  <div class="hudBox">❤️ <span id="health">3</span></div>
+  <div class="hudBox">⭐ <span id="coins">0</span></div>
+  <div class="hudBox">LEVEL <span id="level">1</span>/5</div>
+</div>
+
+<div id="world">
+
+  <div class="platform" style="left:0;bottom:0;width:900px"></div>
+  <div class="platform" style="left:980px;bottom:0;width:850px"></div>
+  <div class="platform" style="left:1910px;bottom:0;width:850px"></div>
+  <div class="platform" style="left:2840px;bottom:0;width:850px"></div>
+  <div class="platform" style="left:3770px;bottom:0;width:1100px"></div>
+
+  <div class="platform" style="left:220px;bottom:130px;width:220px"></div>
+  <div class="platform" style="left:580px;bottom:210px;width:190px"></div>
+
+  <div class="platform" style="left:1160px;bottom:140px;width:230px"></div>
+  <div class="platform" style="left:1500px;bottom:230px;width:190px"></div>
+
+  <div class="platform" style="left:2070px;bottom:150px;width:230px"></div>
+  <div class="platform" style="left:2430px;bottom:240px;width:190px"></div>
+
+  <div class="platform" style="left:3020px;bottom:140px;width:230px"></div>
+  <div class="platform" style="left:3370px;bottom:230px;width:190px"></div>
+
+  <div class="platform" style="left:4000px;bottom:150px;width:230px"></div>
+  <div class="platform" style="left:4380px;bottom:250px;width:210px"></div>
+
+  <div class="coin" style="left:280px;bottom:170px"></div>
+  <div class="coin" style="left:640px;bottom:250px"></div>
+  <div class="coin" style="left:1210px;bottom:180px"></div>
+  <div class="coin" style="left:1550px;bottom:270px"></div>
+  <div class="coin" style="left:2120px;bottom:190px"></div>
+  <div class="coin" style="left:2480px;bottom:280px"></div>
+  <div class="coin" style="left:3070px;bottom:180px"></div>
+  <div class="coin" style="left:3420px;bottom:270px"></div>
+  <div class="coin" style="left:4050px;bottom:190px"></div>
+  <div class="coin" style="left:4430px;bottom:300px"></div>
+
+  <div class="enemy" style="left:700px;bottom:28px"></div>
+  <div class="enemy" style="left:1320px;bottom:28px"></div>
+  <div class="enemy" style="left:1750px;bottom:28px"></div>
+  <div class="enemy" style="left:2250px;bottom:28px"></div>
+  <div class="enemy" style="left:2700px;bottom:28px"></div>
+  <div class="enemy" style="left:3200px;bottom:28px"></div>
+  <div class="enemy" style="left:3650px;bottom:28px"></div>
+  <div class="enemy" style="left:4300px;bottom:28px"></div>
+
+  <div id="exit" style="left:4800px;bottom:28px">
+    <div id="exitText">EXIT</div>
+  </div>
+
+  <div id="player"></div>
+
+</div>
+
+<div id="controls">
+  <div class="controlGroup">
+    <div class="control" id="left">←</div>
+    <div class="control" id="right">→</div>
+  </div>
+
+  <div class="control" id="jump">↑</div>
+</div>
+
+<div class="screen" id="startScreen">
+  <div class="panel">
+    <div class="brand">GAZELLA</div>
+    <h1>ESCAPE <span class="gold">RUN</span></h1>
+
+    <p>
+      Run, jump, avoid enemies, collect coins
+      and reach the exit through 5 levels.
+    </p>
+
+    <button class="mainBtn" id="startBtn">
+      START GAME
+    </button>
+
+    <p style="font-size:13px">
+      📱 Mobile: touch controls<br>
+      💻 PC: A / D or Arrow Keys + Space
+    </p>
+  </div>
+</div>
+
+<div class="screen hidden" id="levelScreen">
+  <div class="panel">
+    <div class="brand">LEVEL COMPLETE</div>
+    <h1>🔥 NICE!</h1>
+
+    <p id="levelMessage"></p>
+
+    <button class="mainBtn" id="nextBtn">
+      NEXT LEVEL
+    </button>
+  </div>
+</div>
+
+<div class="screen hidden" id="gameOverScreen">
+  <div class="panel">
+    <h1>GAME <span class="gold">OVER</span></h1>
+
+    <p>
+      You lost all your lives.
+      Try again and reach the exit.
+    </p>
+
+    <button class="mainBtn" id="retryBtn">
+      TRY AGAIN
+    </button>
+  </div>
+</div>
+
+<div class="screen hidden" id="finishScreen">
+  <div class="panel">
+
+    <div class="brand">CHALLENGE COMPLETE</div>
+
+    <h1>YOU <span class="gold">WON!</span> 🏆</h1>
+
+    <div class="prize">₹200</div>
+
+    <p>
+      Congratulations! You completed all 5 levels.
+    </p>
+
+    <p>
+      📸 Save this winning screen.<br>
+      📩 Go to <b>@gazelle.giveaway</b> on Instagram
+      and send your winning screenshot for verification.
+    </p>
+
+    <a
+      class="instagramBtn"
+      href="https://www.instagram.com/gazelle.giveaway/"
+      target="_blank"
+      rel="noopener noreferrer">
+      📩 GO TO INSTAGRAM
+    </a>
+
+    <button class="mainBtn" id="playAgainBtn">
+      🎮 PLAY AGAIN
+    </button>
+
+    <p style="font-size:12px;color:#666">
+      Prize eligibility, verification and published
+      giveaway rules apply. No payment is required
+      to play this game.
+    </p>
+
+  </div>
+</div>
+
+</div>
+
+<script>
+
+const player = document.getElementById("player");
+const world = document.getElementById("world");
+
+const healthText = document.getElementById("health");
+const coinsText = document.getElementById("coins");
+const levelText = document.getElementById("level");
+
+const startScreen = document.getElementById("startScreen");
+const levelScreen = document.getElementById("levelScreen");
+const gameOverScreen = document.getElementById("gameOverScreen");
+const finishScreen = document.getElementById("finishScreen");
+const levelMessage = document.getElementById("levelMessage");
+
+let x = 70;
+let y = 28;
+
+let vx = 0;
+let vy = 0;
+
+let health = 3;
+let coins = 0;
+let level = 1;
+
+let leftPressed = false;
+let rightPressed = false;
+
+let gameRunning = false;
+let levelCleared = false;
+
+const gravity = 0.65;
+const moveSpeed = 4.5;
+const jumpPower = 12;
+
+function updateHUD(){
+
+  healthText.textContent = health;
+  coinsText.textContent = coins;
+  levelText.textContent = level;
+
+}
+
+function resetPlayer(){
+
+  x = 70;
+  y = 28;
+  vx = 0;
+  vy = 0;
+
+  player.style.left = x + "px";
+  player.style.bottom = y + "px";
+
+}
+
+function getPlatforms(){
+
+  return Array.from(
+    document.querySelectorAll(".platform")
+  ).map(function(p){
+
+    return {
+      left:parseFloat(p.style.left),
+      bottom:parseFloat(p.style.bottom),
+      width:p.offsetWidth,
+      height:p.offsetHeight
+    };
+
+  });
+
+}
+
+function applyGravity(){
+
+  const oldBottom = y;
+
+  vy -= gravity;
+  y += vy;
+
+  getPlatforms().forEach(function(p){
+
+    const playerLeft = x;
+    const playerRight = x + 38;
+
+    const platformLeft = p.left;
+    const platformRight = p.left + p.width;
+
+    const platformTop = p.bottom + p.height;
+
+    if(
+      playerRight > platformLeft &&
+      playerLeft < platformRight &&
+      oldBottom >= platformTop - 3 &&
+      y <= platformTop
+    ){
+
+      y = platformTop;
+      vy = 0;
+
+    }
+
+  });
+
+  if(y < -100){
+    loseLife();
+  }
+
+}
+
+function movePlayer(){
+
+  if(!gameRunning) return;
+
+  if(leftPressed){
+
+    vx = -moveSpeed;
+
+  }else if(rightPressed){
+
+    vx = moveSpeed;
+
+  }else{
+
+    vx *= .78;
+
+  }
+
+  x += vx;
+
+  if(x < 0) x = 0;
+  if(x > 4920) x = 4920;
+
+  applyGravity();
+
+  player.style.left = x + "px";
+  player.style.bottom = y + "px";
+
+  updateCamera();
+  checkCoins();
+  checkEnemies();
+  checkExit();
+
+  requestAnimationFrame(movePlayer);
+
+}
+
+function updateCamera(){
+
+  const cameraTarget =
+    x - window.innerWidth * .35;
+
+  const maxCamera =
+    Math.max(0,5000-window.innerWidth);
+
+  const camera =
+    Math.max(0,Math.min(cameraTarget,maxCamera));
+
+  world.style.transform =
+    "translateX(-" + camera + "px)";
+
+}
+
+function jump(){
+
+  if(!gameRunning) return;
+
+  let standing = false;
+
+  getPlatforms().forEach(function(p){
+
+    const platformTop =
+      p.bottom + p.height;
+
+    if(
+      x + 38 > p.left &&
+      x < p.left + p.width &&
+      Math.abs(y - platformTop) < 3
+    ){
+
+      standing = true;
+
+    }
+
+  });
+
+  if(standing){
+    vy = jumpPower;
+  }
+
+}
+
+function checkCoins(){
+
+  document.querySelectorAll(".coin").forEach(function(c){
+
+    if(c.dataset.collected === "yes") return;
+
+    const cx = parseFloat(c.style.left);
+    const cy = parseFloat(c.style.bottom);
+
+    if(
+      Math.abs((x+19)-cx) < 35 &&
+      Math.abs((y+25)-cy) < 45
+    ){
+
+      c.dataset.collected = "yes";
+      c.style.display = "none";
+
+      coins++;
+      updateHUD();
+
+    }
+
+  });
+
+}
+
+function checkEnemies(){
+
+  document.querySelectorAll(".enemy").forEach(function(enemy){
+
+    if(enemy.dataset.hit === "yes") return;
+
+    const ex = parseFloat(enemy.style.left);
+    const ey = parseFloat(enemy.style.bottom);
+
+    if(
+      x + 38 > ex &&
+      x < ex + 40 &&
+      y + 52 > ey &&
+      y < ey + 40
+    ){
+
+      enemy.dataset.hit = "yes";
+
+      loseLife();
+
+      setTimeout(function(){
+        enemy.dataset.hit = "";
+      },1000);
+
+    }
+
+  });
+
+}
+
+function checkExit(){
+
+  if(
+    x + 38 > 4800 &&
+    x < 4862
+  ){
+
+    completeGame();
+
+  }
+
+}
+
+function loseLife(){
+
+  if(levelCleared || !gameRunning) return;
+
+  health--;
+
+  updateHUD();
+
+  if(health <= 0){
+
+    gameRunning = false;
+    gameOverScreen.classList.remove("hidden");
+
+  }else{
+
+    resetPlayer();
+
+  }
+
+}
+
+function completeGame(){
+
+  if(levelCleared) return;
+
+  levelCleared = true;
+  gameRunning = false;
+
+  if(level < 5){
+
+    levelMessage.textContent =
+      "Level " + level +
+      " complete! Get ready for Level " +
+      (level + 1) + ".";
+
+    levelScreen.classList.remove("hidden");
+
+  }else{
+
+    finishScreen.classList.remove("hidden");
+
+  }
+
+}
+
+function nextLevel(){
+
+  level++;
+  levelCleared = false;
+
+  updateHUD();
+  resetPlayer();
+
+  levelScreen.classList.add("hidden");
+
+  gameRunning = true;
+
+  movePlayer();
+
+}
+
+function startGame(){
+
+  health = 3;
+  coins = 0;
+  level = 1;
+  levelCleared = false;
+
+  document.querySelectorAll(".coin")
+  .forEach(function(c){
+
+    c.dataset.collected = "";
+    c.style.display = "block";
+
+  });
+
+  updateHUD();
+  resetPlayer();
+
+  startScreen.classList.add("hidden");
+  gameOverScreen.classList.add("hidden");
+  finishScreen.classList.add("hidden");
+
+  gameRunning = true;
+
+  movePlayer();
+
+}
+
+function holdButton(element,on,off){
+
+  element.addEventListener("pointerdown",function(e){
+
+    e.preventDefault();
+    on();
+
+  });
+
+  element.addEventListener("pointerup",function(e){
+
+    e.preventDefault();
+    off();
+
+  });
+
+  element.addEventListener("pointercancel",off);
+  element.addEventListener("pointerleave",off);
+
+}
+
+holdButton(
+  document.getElementById("left"),
+  function(){leftPressed=true},
+  function(){leftPressed=false}
+);
+
+holdButton(
+  document.getElementById("right"),
+  function(){rightPressed=true},
+  function(){rightPressed=false}
+);
+
+document.getElementById("jump")
+.addEventListener("pointerdown",function(e){
+
+  e.preventDefault();
+  jump();
+
+});
+
+document.addEventListener("keydown",function(e){
+
+  if(
+    e.key === "ArrowLeft" ||
+    e.key.toLowerCase() === "a"
+  ){
+
+    leftPressed = true;
+
+  }
+
+  if(
+    e.key === "ArrowRight" ||
+    e.key.toLowerCase() === "d"
+  ){
+
+    rightPressed = true;
+
+  }
+
+  if(
+    e.code === "Space" ||
+    e.key === "ArrowUp"
+  ){
+
+    jump();
+
+  }
+
+});
+
+document.addEventListener("keyup",function(e){
+
+  if(
+    e.key === "ArrowLeft" ||
+    e.key.toLowerCase() === "a"
+  ){
+
+    leftPressed = false;
+
+  }
+
+  if(
+    e.key === "ArrowRight" ||
+    e.key.toLowerCase() === "d"
+  ){
+
+    rightPressed = false;
+
+  }
+
+});
+
+document.getElementById("startBtn")
+.addEventListener("click",startGame);
+
+document.getElementById("nextBtn")
+.addEventListener("click",nextLevel);
+
+document.getElementById("retryBtn")
+.addEventListener("click",startGame);
+
+document.getElementById("playAgainBtn")
+.addEventListener("click",startGame);
+
+resetPlayer();
+updateHUD();
+
+</script>
+
+</body>
+</html>
